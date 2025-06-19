@@ -28,7 +28,22 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        $user = Auth::user();
+
+        // --- MULAI LOGIKA REDIRECT BERDASARKAN PERAN ---
+
+        // Cek jika peran user adalah 'admin'
+        if ($user->role === 'admin') {
+            // Arahkan ke path default Filament (biasanya '/admin')
+            // Menggunakan config('filament.path') lebih aman daripada hardcode '/admin'
+            return redirect()->intended(config('filament.path', '/admin'));
+        }
+
+        // Untuk peran lainnya ('user' atau default), arahkan ke halaman utama
+        // Pastikan Anda punya rute bernama 'home' di routes/web.php
+        return redirect()->intended(route('home'));
+
+        // --- SELESAI LOGIKA REDIRECT ---
     }
 
     /**
