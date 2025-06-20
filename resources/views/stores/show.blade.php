@@ -35,6 +35,15 @@
         position: relative;
         z-index: 2;
     }
+    .store-header-content h1 {
+        color: #f9fafb; /* Light gray text for visibility */
+    }
+    .store-header-content .text-white {
+        color: #d1d5db; /* Adjust to a slightly darker gray for better contrast */
+    }
+    .store-header-content .flex .text-white {
+        color: #e5e7eb; /* Ensure all text elements in flex containers are visible */
+    }
     .rating-overview {
         background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
     }
@@ -89,12 +98,12 @@
                 <div class="flex flex-col lg:flex-row items-start lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
                     <!-- Store Avatar & Basic Info -->
                     <div class="flex items-center space-x-6">
-                        <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-white/30">
-                            <span class="text-white font-bold text-3xl">{{ strtoupper(substr($store->name, 0, 1)) }}</span>
+                        <div class="w-24 h-24 bg-sage-600 backdrop-blur-sm rounded-full flex items-center justify-center border-4 border-sage-600">
+                            <span class="text-black font-bold text-3xl">{{ strtoupper(substr($store->name, 0, 1)) }}</span>
                         </div>
                         <div>
-                            <h1 class="text-3xl font-bold text-white mb-2">{{ $store->name }}</h1>
-                            <div class="flex flex-wrap items-center gap-4 text-white/90">
+                            <h1 class="text-3xl font-bold text-black mb-2">{{ $store->name }}</h1>
+                            <div class="flex flex-wrap items-center gap-4 text-black/90">
                                 <div class="flex items-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -115,7 +124,7 @@
                     <!-- Store Rating & Status -->
                     <div class="flex-1 lg:text-right space-y-4">
                         <!-- Store Rating -->
-                        <div class="rating-overview text-white p-4 rounded-lg backdrop-blur-sm bg-white/10">
+                        <div class="rating-overview text-black p-4 rounded-lg backdrop-blur-sm bg-white/10">
                             @php
                                 // Mock data untuk demo - nanti akan diganti dengan data asli dari database
                                 $storeRating = 4.7;
@@ -134,7 +143,7 @@
                                 </div>
                                 <span class="text-xl font-bold">{{ number_format($storeRating, 1) }}</span>
                             </div>
-                            <p class="text-sm text-white/90">({{ number_format($totalReviews) }} ulasan toko)</p>
+                            <p class="text-sm text-black/90">({{ number_format($totalReviews) }} ulasan toko)</p>
                         </div>
 
                         <!-- Store Status & Trust Badge -->
