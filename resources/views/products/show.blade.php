@@ -22,6 +22,18 @@
             padding-bottom: 100px;
         }
     }
+    .store-rating-stars {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+    .star-rating {
+        color: #fbbf24;
+        transition: transform 0.2s ease;
+    }
+    .star-rating:hover {
+        transform: scale(1.1);
+    }
 </style>
 @endpush
 
@@ -134,22 +146,28 @@
                     </div>
                 </div>
                 
-                <!-- Rating & Reviews (Mock data for now) -->
+                <!-- Store Rating (SINGLE LOCATION) -->
                 <div class="flex items-center space-x-4 mb-6">
-                    <div class="flex items-center space-x-1">
+                    <div class="flex items-center space-x-1 store-rating-stars">
+                        @php
+                            // Mock data untuk demo - nanti akan diganti dengan rating toko yang sesungguhnya
+                            $storeRating = 4.5;
+                            $totalReviews = 24;
+                            $totalSold = rand(50, 200);
+                        @endphp
                         @for($i = 1; $i <= 5; $i++)
-                            <svg class="w-4 h-4 {{ $i <= 4 ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                            <svg class="w-4 h-4 star-rating {{ $i <= floor($storeRating) ? 'text-yellow-400' : ($i <= $storeRating ? 'text-yellow-300' : 'text-gray-300') }}" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                             </svg>
                         @endfor
-                        <span class="text-sm text-gray-600 ml-2">4.5 (24 ulasan)</span>
+                        <span class="text-sm text-gray-600 ml-2 font-medium">{{ number_format($storeRating, 1) }} ({{ $totalReviews }} ulasan toko)</span>
                     </div>
                     <span class="text-gray-300">|</span>
-                    <span class="text-sm text-gray-600">{{ rand(50, 200) }} terjual</span>
+                    <span class="text-sm text-gray-600 font-medium">{{ $totalSold }} terjual</span>
                 </div>
             </div>
 
-            <!-- Store Info -->
+            <!-- Store Info (Simplified - No Redundant Rating) -->
             <div class="bg-gray-50 rounded-lg p-6 border border-gray-200">
                 <h3 class="font-semibold text-gray-900 mb-4">Informasi Toko</h3>
                 <div class="flex items-center justify-between">
@@ -160,7 +178,7 @@
                         <div>
                             <h4 class="font-medium text-gray-900 text-lg">{{ $product->store->name }}</h4>
                             <p class="text-sm text-gray-600">{{ $product->store->city }}, {{ $product->store->province }}</p>
-                            <div class="flex items-center space-x-4 mt-1">
+                            <div class="flex items-center space-x-2 mt-1">
                                 <span class="text-xs text-gray-500">Aktif {{ $product->store->created_at->diffForHumans() }}</span>
                                 @if($product->store->is_active)
                                     <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Online</span>
@@ -270,7 +288,7 @@
                     </button>
                     <button onclick="shareProduct()" class="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.364 3.682a3 3 0 105.639-2.364L17.323 14.682a3 3 0 00-6.677 0L8.684 13.342zM9 12a3 3 0 110-6 3 3 0 010 6z"></path>
                         </svg>
                         <span class="text-sm font-medium">Share</span>
                     </button>
@@ -341,11 +359,25 @@
                                     {{ $relatedProduct->name }}
                                 </h3>
                                 <p class="text-lg font-bold text-sage-600 mb-3">{{ $relatedProduct->formatted_price }}</p>
-                                <div class="flex items-center justify-between text-sm">
-                                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ $relatedProduct->category->name }}</span>
+                                
+                                <!-- Store Rating in Product Card (Optional - bisa dihapus jika dirasa terlalu banyak) -->
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <div class="flex items-center space-x-1">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <svg class="w-3 h-3 {{ $i <= 4 ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                            </svg>
+                                        @endfor
+                                        <span class="text-xs text-gray-600 ml-1">4.0</span>
+                                    </div>
+                                    <span class="text-xs text-gray-400">•</span>
                                     <span class="text-xs {{ $relatedProduct->status === 'tersedia' ? 'text-green-600' : 'text-red-600' }} font-medium">
                                         {{ ucfirst($relatedProduct->status) }}
                                     </span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{{ $relatedProduct->category->name }}</span>
                                 </div>
                                 <div class="mt-2 text-xs text-gray-500">
                                     {{ $relatedProduct->store->name }}
