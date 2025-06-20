@@ -34,6 +34,22 @@
     .star-rating:hover {
         transform: scale(1.1);
     }
+    
+    /* Custom Sage Colors */
+    .bg-sage-600 { background-color: #819A91; }
+    .bg-sage-700 { background-color: #6B8A6B; }
+    .bg-sage-50 { background-color: #F7F9F7; }
+    .text-sage-600 { color: #819A91; }
+    .border-sage-600 { border-color: #819A91; }
+    .border-sage-500 { border-color: #A7C1A8; }
+    .border-sage-300 { border-color: #D1D8BE; }
+    .hover\:bg-sage-700:hover { background-color: #6B8A6B; }
+    .hover\:bg-sage-50:hover { background-color: #F7F9F7; }
+    .hover\:text-sage-600:hover { color: #819A91; }
+    .hover\:text-sage-700:hover { color: #6B8A6B; }
+    .hover\:border-sage-300:hover { border-color: #D1D8BE; }
+    .focus\:border-sage-500:focus { border-color: #A7C1A8; }
+    .focus\:ring-sage-500:focus { --tw-ring-color: #A7C1A8; }
 </style>
 @endpush
 
@@ -71,6 +87,19 @@
             </li>
         </ol>
     </nav>
+
+    <!-- Flash Messages -->
+    @if(session('success'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+            <span class="block sm:inline">{{ session('error') }}</span>
+        </div>
+    @endif
 
     <!-- Product Detail -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
@@ -216,46 +245,36 @@
                 </div>
             </div>
 
-            <!-- Quantity Selector -->
-            @if($product->status === 'tersedia')
-                <div class="flex items-center space-x-4">
-                    <label class="text-sm font-medium text-gray-700">Jumlah:</label>
-                    <div class="flex items-center border border-gray-300 rounded-lg">
-                        <button type="button" class="px-4 py-2 text-gray-500 hover:text-gray-700 quantity-btn transition-colors" onclick="decreaseQty()">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                            </svg>
-                        </button>
-                        <input type="number" id="quantity" value="1" min="1" max="10" class="w-16 text-center border-0 focus:ring-0 py-2">
-                        <button type="button" class="px-4 py-2 text-gray-500 hover:text-gray-700 quantity-btn transition-colors" onclick="increaseQty()">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            @endif
-
             <!-- Action Buttons -->
             @auth
                 @if($product->status === 'tersedia')
-                    <div class="space-y-3">
-                        <form action="{{ route('cart.add', $product) }}" method="POST" class="w-full">
-                            @csrf
-                            <input type="hidden" name="quantity" id="cartQuantity" value="1">
-                            <button type="submit" id="addToCartBtn"
-                                    class="w-full bg-sage-600 text-white py-4 px-6 rounded-lg font-medium hover:bg-sage-700 transition-all duration-300 flex items-center justify-center space-x-2 transform hover:scale-105">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.2 7H20"></path>
-                                </svg>
+                    {{-- FORM AKSI UNTUK DESKTOP --}}
+                    <form action="{{ route('cart.add') }}" method="POST" class="mt-6">
+                        @csrf
+                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                        
+                        <div class="flex items-center gap-4 mb-4">
+                            <label for="quantity_desktop" class="font-semibold dark:text-gray-200">Jumlah:</label>
+                            <div class="flex items-center border border-gray-300 rounded-md">
+                                <button type="button" onclick="updateQuantity('quantity_desktop', -1)" class="quantity-btn p-2 rounded-l-md dark:text-gray-200">-</button>
+                                <input type="number" id="quantity_desktop" name="quantity" value="1" min="1" max="{{ $product->stock ?? 99 }}" 
+                                       class="w-16 text-center border-x-0 dark:bg-gray-700 dark:text-gray-200 focus:ring-0">
+                                <button type="button" onclick="updateQuantity('quantity_desktop', 1)" class="quantity-btn p-2 rounded-r-md dark:text-gray-200">+</button>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-3">
+                            {{-- KONSISTEN: Sage untuk Tambah ke Keranjang --}}
+                            <button type="submit" class="w-full bg-sage-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-sage-700 transition duration-300 flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
                                 <span>Tambah ke Keranjang</span>
                             </button>
-                        </form>
-                        <button onclick="buyNow()" 
-                                class="w-full border-2 border-sage-600 text-sage-600 py-4 px-6 rounded-lg font-medium hover:bg-sage-50 transition-all duration-300 transform hover:scale-105">
-                            Beli Sekarang
-                        </button>
-                    </div>
+                            {{-- KONSISTEN: Border Sage untuk Beli Sekarang --}}
+                            <button type="button" onclick="buyNow()" class="w-full border-2 border-sage-600 text-sage-600 py-3 px-4 rounded-lg font-bold hover:bg-sage-50 transition duration-300">
+                                Beli Sekarang
+                            </button>
+                        </div>
+                    </form>
                 @else
                     <div class="text-center py-6 bg-red-50 rounded-lg border border-red-200">
                         <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,7 +305,7 @@
                         </svg>
                         <span class="text-sm font-medium">Wishlist</span>
                     </button>
-                    <button onclick="shareProduct()" class="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors group">
+                    <button onclick="shareProduct()" class="flex items-center space-x-2 text-gray-500 hover:text-sage-600 transition-colors group">
                         <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.364 3.682a3 3 0 105.639-2.364L17.323 14.682a3 3 0 00-6.677 0L8.684 13.342zM9 12a3 3 0 110-6 3 3 0 010 6z"></path>
                         </svg>
@@ -391,23 +410,24 @@
     @endif
 </div>
 
-<!-- Sticky Buy Bar for Mobile -->
+{{-- STICKY BAR UNTUK MOBILE --}}
 @auth
     @if($product->status === 'tersedia')
-        <div class="fixed bottom-0 left-0 right-0 lg:hidden z-50 sticky-buy-bar border-t border-gray-200 p-4">
-            <div class="flex space-x-3">
-                <button onclick="addToCartMobile()" 
-                        class="flex-1 bg-sage-600 text-white py-3 rounded-lg font-medium hover:bg-sage-700 transition-colors flex items-center justify-center space-x-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.2 7H20"></path>
-                    </svg>
-                    <span>Keranjang</span>
-                </button>
-                <button onclick="buyNow()" 
-                        class="flex-1 border border-sage-600 text-sage-600 py-3 rounded-lg font-medium hover:bg-sage-50 transition-colors">
-                    Beli Sekarang
-                </button>
-            </div>
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 p-2 border-t border-gray-200 dark:border-gray-700 sticky-buy-bar">
+            <form action="{{ route('cart.add') }}" method="POST">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                {{-- Di mobile, kita asumsikan kuantitas selalu 1 untuk simple --}}
+                <input type="hidden" name="quantity" value="1">
+                
+                <div class="flex justify-between items-center gap-2">
+                    <button type="button" onclick="buyNow()" class="w-1/2 border-2 border-sage-600 text-sage-600 font-bold py-2 px-3 rounded-md text-sm hover:bg-sage-50">Beli Sekarang</button>
+                    <button type="submit" class="w-1/2 bg-sage-600 text-white font-bold py-2 px-3 rounded-md text-sm flex items-center justify-center gap-1 hover:bg-sage-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" /></svg>
+                        <span>+ Keranjang</span>
+                    </button>
+                </div>
+            </form>
         </div>
     @endif
 @endauth
@@ -426,29 +446,19 @@
 
 @push('scripts')
 <script>
-    // Quantity functions
-    function decreaseQty() {
-        const input = document.getElementById('quantity');
+    // Tambahkan fungsi updateQuantity
+    function updateQuantity(inputId, change) {
+        const input = document.getElementById(inputId);
         const currentValue = parseInt(input.value);
-        if (currentValue > 1) {
-            input.value = currentValue - 1;
-            document.getElementById('cartQuantity').value = currentValue - 1;
+        const min = parseInt(input.min);
+        const max = parseInt(input.max);
+        
+        const newValue = currentValue + change;
+        
+        if (newValue >= min && newValue <= max) {
+            input.value = newValue;
         }
     }
-
-    function increaseQty() {
-        const input = document.getElementById('quantity');
-        const currentValue = parseInt(input.value);
-        if (currentValue < 10) {
-            input.value = currentValue + 1;
-            document.getElementById('cartQuantity').value = currentValue + 1;
-        }
-    }
-
-    // Update cart quantity when manual input
-    document.getElementById('quantity').addEventListener('change', function() {
-        document.getElementById('cartQuantity').value = this.value;
-    });
 
     // Image gallery functions
     function changeMainImage(src, element) {
@@ -481,34 +491,6 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         document.body.style.overflow = 'auto';
-    }
-
-    // Add to cart with loading state
-    document.getElementById('addToCartBtn')?.addEventListener('click', function(e) {
-        const button = this;
-        const originalText = button.innerHTML;
-        
-        button.innerHTML = `
-            <svg class="animate-spin w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-        `;
-        button.disabled = true;
-        
-        // Reset after 2 seconds (adjust based on your actual response)
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }, 2000);
-    });
-
-    // Mobile add to cart
-    function addToCartMobile() {
-        const form = document.querySelector('form[action*="cart.add"]');
-        if (form) {
-            form.submit();
-        }
     }
 
     // Buy now function

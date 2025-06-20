@@ -37,13 +37,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Cart Management (butuh login)
+    // Cart Management (butuh login) - UPDATED SESUAI IMPLEMENTASI KITA
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
-        Route::post('/add/{product}', [CartController::class, 'add'])->name('add');
-        Route::patch('/update/{product}', [CartController::class, 'update'])->name('update');
-        Route::delete('/remove/{product}', [CartController::class, 'remove'])->name('remove');
-        Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
+        Route::post('/add', [CartController::class, 'add'])->name('add');
+        Route::post('/update/{id}', [CartController::class, 'update'])->name('update');
+        Route::get('/remove/{id}', [CartController::class, 'remove'])->name('remove');
+        Route::get('/clear', [CartController::class, 'clear'])->name('clear');
     });
 
     // Checkout & Orders
