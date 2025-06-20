@@ -20,7 +20,7 @@ Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
 Route::get('/stores/{store:slug}', [StoreController::class, 'show'])->name('stores.show');
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
-Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/search', [SearchController::class, 'index'])->name('search'); // ADDED
 
 // Auth routes (Breeze)
 require __DIR__ . '/auth.php';
@@ -41,11 +41,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/add', [CartController::class, 'add'])->name('add');
-        Route::patch('/update/{id}', [CartController::class, 'update'])->name('update'); // CHANGED: POST to PATCH
-        Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove'); // CHANGED: GET to DELETE
-        Route::delete('/clear', [CartController::class, 'clear'])->name('clear'); // CHANGED: GET to DELETE
-        Route::get('/count', [CartController::class, 'count'])->name('count'); // NEW: for AJAX
-        Route::post('/sync', [CartController::class, 'sync'])->name('sync'); // NEW: for sync
+        Route::patch('/update/{id}', [CartController::class, 'update'])->name('update');
+        Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove');
+        Route::delete('/clear', [CartController::class, 'clear'])->name('clear');
+        Route::get('/count', [CartController::class, 'count'])->name('count');
+        Route::post('/sync', [CartController::class, 'sync'])->name('sync');
     });
 
     // Checkout & Orders
