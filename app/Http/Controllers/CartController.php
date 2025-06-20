@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Cart;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
@@ -12,14 +14,13 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cartItems = session()->get('cart', []);
-        $total = 0;
-        $totalItems = 0;
-
-        foreach ($cartItems as $item) {
-            $total += $item['price'] * $item['quantity'];
-            $totalItems += $item['quantity'];
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk melihat keranjang.');
         }
+
+        $cartItems = $this->getCartItems();
+        $total = $this->getCartTotalPrice(); // RENAMED: from getCartTotal to getCartTotalPrice
+        $totalItems = $this->getCartTotalItems();
 
         return view('cart.index', [
             'cartItems' => $cartItems,
@@ -29,10 +30,62 @@ class CartController extends Controller
     }
 
     /**
+     * Get cart items from database for authenticated users
+     */
+    private function getCartItems()
+    {
+        $carts = Cart::where('user_id', Auth::id())
+            ->with(['product' => function ($query) {
+                $query->with('store');
+            }])
+            ->get();
+
+        return $carts->mapWithKeys(function ($cart) {
+            return [$cart->product->id => [
+                'cart_id' => $cart->id,
+                'name' => $cart->product->name,
+                'quantity' => $cart->quantity,
+                'price' => $cart->product->price,
+                'image' => $cart->product->main_image,
+                'slug' => $cart->product->slug ?? $cart->product->id,
+                'stock' => $cart->product->stock,
+                'condition' => $cart->product->condition,
+                'store_name' => $cart->product->store->name ?? 'Unknown Store',
+                'subtotal' => $cart->product->price * $cart->quantity,
+            ]];
+        })->toArray();
+    }
+
+    /**
+     * Get cart total from database (instance method - RENAMED)
+     */
+    private function getCartTotalPrice()
+    {
+        return Cart::where('user_id', Auth::id())
+            ->with('product')
+            ->get()
+            ->sum(function ($cart) {
+                return $cart->product->price * $cart->quantity;
+            });
+    }
+
+    /**
+     * Get total items in cart
+     */
+    private function getCartTotalItems()
+    {
+        return Cart::where('user_id', Auth::id())->sum('quantity');
+    }
+
+    /**
      * Menambahkan produk ke dalam keranjang.
      */
     public function add(Request $request)
     {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk menambahkan produk ke keranjang.');
+        }
+
         $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1|max:99',
@@ -50,35 +103,28 @@ class CartController extends Controller
             return redirect()->back()->with('error', 'Stok tidak mencukupi! Stok tersedia: ' . $product->stock);
         }
 
-        $cart = session()->get('cart', []);
-        $productId = $product->id;
+        // Cek apakah sudah ada di cart
+        $existingCart = Cart::where('user_id', Auth::id())
+            ->where('product_id', $product->id)
+            ->first();
 
-        // Cek jika produk sudah ada di keranjang
-        if (isset($cart[$productId])) {
-            $newQuantity = $cart[$productId]['quantity'] + $request->quantity;
+        if ($existingCart) {
+            $newQuantity = $existingCart->quantity + $request->quantity;
 
             // Cek apakah total quantity tidak melebihi stok
             if ($newQuantity > $product->stock) {
                 return redirect()->back()->with('error', 'Total quantity melebihi stok! Stok tersedia: ' . $product->stock);
             }
 
-            $cart[$productId]['quantity'] = $newQuantity;
+            $existingCart->update(['quantity' => $newQuantity]);
         } else {
             // Jika belum ada, tambahkan sebagai item baru
-            $cart[$productId] = [
-                "name" => $product->name,
-                "quantity" => $request->quantity,
-                "price" => $product->price,
-                "image" => $product->main_image,
-                "slug" => $product->slug ?? $product->id,
-                "stock" => $product->stock,
-                "condition" => $product->condition,
-                "store_name" => $product->store->name ?? 'Unknown Store'
-            ];
+            Cart::create([
+                'user_id' => Auth::id(),
+                'product_id' => $product->id,
+                'quantity' => $request->quantity,
+            ]);
         }
-
-        // Simpan kembali ke session
-        session()->put('cart', $cart);
 
         // Flash message untuk notifikasi
         $message = $request->quantity > 1
@@ -93,13 +139,19 @@ class CartController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
         $request->validate([
             'quantity' => 'required|integer|min:1|max:99',
         ]);
 
-        $cart = session()->get('cart', []);
+        $cart = Cart::where('user_id', Auth::id())
+            ->where('product_id', $id)
+            ->first();
 
-        if (!isset($cart[$id])) {
+        if (!$cart) {
             return redirect()->route('cart.index')->with('error', 'Produk tidak ditemukan di keranjang!');
         }
 
@@ -110,16 +162,7 @@ class CartController extends Controller
         }
 
         // Update quantity
-        $cart[$id]['quantity'] = $request->quantity;
-
-        // Update info terbaru dari database jika produk masih ada
-        if ($product) {
-            $cart[$id]['price'] = $product->price;
-            $cart[$id]['stock'] = $product->stock;
-            $cart[$id]['name'] = $product->name;
-        }
-
-        session()->put('cart', $cart);
+        $cart->update(['quantity' => $request->quantity]);
 
         return redirect()->route('cart.index')->with('success', 'Keranjang berhasil diupdate!');
     }
@@ -129,12 +172,18 @@ class CartController extends Controller
      */
     public function remove($id)
     {
-        $cart = session()->get('cart', []);
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
 
-        if (isset($cart[$id])) {
-            $productName = $cart[$id]['name'];
-            unset($cart[$id]);
-            session()->put('cart', $cart);
+        $cart = Cart::where('user_id', Auth::id())
+            ->where('product_id', $id)
+            ->with('product')
+            ->first();
+
+        if ($cart) {
+            $productName = $cart->product->name;
+            $cart->delete();
 
             return redirect()->route('cart.index')->with('success', $productName . ' berhasil dihapus dari keranjang!');
         }
@@ -147,7 +196,11 @@ class CartController extends Controller
      */
     public function clear()
     {
-        session()->forget('cart');
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        Cart::where('user_id', Auth::id())->delete();
         return redirect()->route('cart.index')->with('success', 'Keranjang berhasil dikosongkan!');
     }
 
@@ -156,32 +209,37 @@ class CartController extends Controller
      */
     public function count()
     {
-        $cartItems = session()->get('cart', []);
-        $totalItems = 0;
-
-        foreach ($cartItems as $item) {
-            $totalItems += $item['quantity'];
+        if (!Auth::check()) {
+            return response()->json([
+                'count' => 0,
+                'items' => 0
+            ]);
         }
+
+        $totalItems = Cart::where('user_id', Auth::id())->sum('quantity');
+        $itemCount = Cart::where('user_id', Auth::id())->count();
 
         return response()->json([
             'count' => $totalItems,
-            'items' => count($cartItems)
+            'items' => $itemCount
         ]);
     }
 
     /**
-     * Helper method untuk mendapatkan total harga keranjang.
+     * Helper method untuk mendapatkan total harga keranjang (STATIC METHOD).
      */
     public static function getCartTotal()
     {
-        $cartItems = session()->get('cart', []);
-        $total = 0;
-
-        foreach ($cartItems as $item) {
-            $total += $item['price'] * $item['quantity'];
+        if (!Auth::check()) {
+            return 0;
         }
 
-        return $total;
+        return Cart::where('user_id', Auth::id())
+            ->with('product')
+            ->get()
+            ->sum(function ($cart) {
+                return $cart->product->price * $cart->quantity;
+            });
     }
 
     /**
@@ -189,8 +247,11 @@ class CartController extends Controller
      */
     public static function getCartItemCount()
     {
-        $cartItems = session()->get('cart', []);
-        return count($cartItems);
+        if (!Auth::check()) {
+            return 0;
+        }
+
+        return Cart::where('user_id', Auth::id())->count();
     }
 
     /**
@@ -198,14 +259,11 @@ class CartController extends Controller
      */
     public static function getCartQuantityCount()
     {
-        $cartItems = session()->get('cart', []);
-        $totalQuantity = 0;
-
-        foreach ($cartItems as $item) {
-            $totalQuantity += $item['quantity'];
+        if (!Auth::check()) {
+            return 0;
         }
 
-        return $totalQuantity;
+        return Cart::where('user_id', Auth::id())->sum('quantity');
     }
 
     /**
@@ -213,47 +271,38 @@ class CartController extends Controller
      */
     public function sync()
     {
-        $cart = session()->get('cart', []);
-        $updatedCart = [];
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $carts = Cart::where('user_id', Auth::id())
+            ->with('product')
+            ->get();
+
         $hasChanges = false;
 
-        foreach ($cart as $id => $item) {
-            $product = Product::find($id);
+        foreach ($carts as $cart) {
+            $product = $cart->product;
 
-            if ($product && $product->status === 'tersedia') {
-                // Update informasi produk dengan data terbaru
-                $updatedItem = $item;
-
-                if ($product->price != $item['price']) {
-                    $updatedItem['price'] = $product->price;
-                    $hasChanges = true;
-                }
-
-                if ($product->stock != $item['stock']) {
-                    $updatedItem['stock'] = $product->stock;
-                    $hasChanges = true;
-                }
-
-                if ($product->name != $item['name']) {
-                    $updatedItem['name'] = $product->name;
-                    $hasChanges = true;
-                }
-
-                // Jika quantity melebihi stok, sesuaikan
-                if ($item['quantity'] > $product->stock) {
-                    $updatedItem['quantity'] = $product->stock;
-                    $hasChanges = true;
-                }
-
-                $updatedCart[$id] = $updatedItem;
-            } else {
+            if (!$product || $product->status !== 'tersedia') {
                 // Produk sudah tidak tersedia, hapus dari keranjang
+                $cart->delete();
+                $hasChanges = true;
+                continue;
+            }
+
+            // Jika quantity melebihi stok, sesuaikan
+            if ($cart->quantity > $product->stock) {
+                if ($product->stock > 0) {
+                    $cart->update(['quantity' => $product->stock]);
+                } else {
+                    $cart->delete();
+                }
                 $hasChanges = true;
             }
         }
 
         if ($hasChanges) {
-            session()->put('cart', $updatedCart);
             return redirect()->route('cart.index')->with('info', 'Keranjang telah diperbarui dengan informasi produk terbaru.');
         }
 

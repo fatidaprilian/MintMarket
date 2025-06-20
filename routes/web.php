@@ -37,13 +37,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Cart Management (butuh login) - UPDATED SESUAI IMPLEMENTASI KITA
+    // Cart Management (butuh login) - FIXED ROUTES
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/add', [CartController::class, 'add'])->name('add');
-        Route::post('/update/{id}', [CartController::class, 'update'])->name('update');
-        Route::get('/remove/{id}', [CartController::class, 'remove'])->name('remove');
-        Route::get('/clear', [CartController::class, 'clear'])->name('clear');
+        Route::patch('/update/{id}', [CartController::class, 'update'])->name('update'); // CHANGED: POST to PATCH
+        Route::delete('/remove/{id}', [CartController::class, 'remove'])->name('remove'); // CHANGED: GET to DELETE
+        Route::delete('/clear', [CartController::class, 'clear'])->name('clear'); // CHANGED: GET to DELETE
+        Route::get('/count', [CartController::class, 'count'])->name('count'); // NEW: for AJAX
+        Route::post('/sync', [CartController::class, 'sync'])->name('sync'); // NEW: for sync
     });
 
     // Checkout & Orders

@@ -4,15 +4,15 @@
 
 @push('styles')
 <style>
-    /* Custom Sage Colors */
-    .bg-sage-600 { background-color: #A7C1A8; }
-    .bg-sage-700 { background-color: #819A91; }
-    .bg-sage-50 { background-color: #F7F9F7; }
+    /* Custom Sage Colors - Disesuaikan dari palet warna Anda */
+    .bg-sage-600 { background-color: #A7C1A8; } /* Hijau yang lebih cerah */
+    .bg-sage-700 { background-color: #819A91; } /* Hijau yang lebih gelap */
+    .bg-sage-50 { background-color: #F7F9F7; }  /* Hampir putih, latar belakang ringan */
     .text-sage-600 { color: #A7C1A8; }
     .text-sage-700 { color: #819A91; }
     .border-sage-600 { border-color: #A7C1A8; }
     .border-sage-500 { border-color: #819A91; }
-    .border-sage-300 { border-color: #D1D8BE; }
+    .border-sage-300 { border-color: #D1D8BE; } /* Warna krem kehijauan */
     .hover\:bg-sage-700:hover { background-color: #819A91; }
     .hover\:bg-sage-50:hover { background-color: #F7F9F7; }
     .hover\:text-sage-600:hover { color: #A7C1A8; }
@@ -22,12 +22,12 @@
     
     /* Quantity Input Styling */
     .quantity-input {
-        -moz-appearance: textfield;
+        -moz-appearance: textfield; /* Untuk Firefox */
         appearance: textfield;
     }
     .quantity-input::-webkit-outer-spin-button,
     .quantity-input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
+        -webkit-appearance: none; /* Untuk Chrome, Safari, Edge */
         margin: 0;
     }
     
@@ -40,21 +40,21 @@
         transform: scale(1.02);
     }
     
-    /* Sticky Buy Bar */
+    /* Sticky Buy Bar untuk mobile */
     .sticky-buy-bar {
         backdrop-filter: blur(10px);
         background-color: rgba(255, 255, 255, 0.95);
         box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     
-    /* Responsive */
+    /* Responsive padding untuk konten utama saat sticky bar aktif */
     @media (max-width: 1024px) {
         .main-content {
-            padding-bottom: 100px;
+            padding-bottom: 100px; /* Memberi ruang di bagian bawah untuk sticky bar */
         }
     }
     
-    /* Line Clamp */
+    /* Line Clamp untuk judul produk */
     .line-clamp-2 {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -68,7 +68,7 @@
     }
     .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(167, 193, 168, 0.3);
+        box-shadow: 0 4px 12px rgba(167, 193, 168, 0.3); /* Shadow dengan warna sage */
     }
     
     .btn-secondary {
@@ -76,7 +76,29 @@
     }
     .btn-secondary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(209, 216, 190, 0.3);
+        box-shadow: 0 4px 12px rgba(209, 216, 190, 0.3); /* Shadow dengan warna krem kehijauan */
+    }
+
+    /* Perbaikan untuk tampilan Breadcrumb agar lebih rapih */
+    .breadcrumb-nav ol {
+        display: flex; /* Memastikan ol menggunakan flexbox */
+        align-items: center;
+        padding: 0; /* Pastikan tidak ada padding default pada ol */
+        margin: 0; /* Pastikan tidak ada margin default pada ol */
+    }
+
+    .breadcrumb-nav li {
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-nav li:not(:first-child) {
+        margin-left: 0.25rem; /* Jarak antar item breadcrumb */
+    }
+
+    .breadcrumb-nav li svg {
+        margin: 0 0.25rem; /* Memberikan sedikit ruang di sekitar panah SVG */
+        vertical-align: middle;
     }
 </style>
 @endpush
@@ -84,32 +106,31 @@
 @section('content')
 <div class="bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 main-content">
-        <!-- Breadcrumb -->
-        <nav class="flex mb-6" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-2 text-sm">
-                <li>
+        <nav class="flex mb-6 breadcrumb-nav" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center text-sm">
+                <li class="breadcrumb-item">
                     <a href="{{ route('home') }}" class="text-gray-500 hover:text-sage-600 transition-colors">
                         Beranda
                     </a>
                 </li>
-                <li>
-                    <svg class="w-4 h-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
+                <li class="breadcrumb-item">
+                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     <a href="{{ route('products.index') }}" class="text-gray-500 hover:text-sage-600 transition-colors">
                         Produk
                     </a>
                 </li>
-                <li>
-                    <svg class="w-4 h-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
+                <li class="breadcrumb-item">
+                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     <a href="{{ route('categories.show', $product->category) }}" class="text-gray-500 hover:text-sage-600 transition-colors">
                         {{ $product->category->name }}
                     </a>
                 </li>
-                <li aria-current="page">
-                    <svg class="w-4 h-4 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20">
+                <li class="breadcrumb-item" aria-current="page">
+                    <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     <span class="text-gray-700 truncate max-w-xs">{{ $product->name }}</span>
@@ -117,7 +138,6 @@
             </ol>
         </nav>
 
-        <!-- Flash Messages -->
         @if(session('success'))
             <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -136,12 +156,9 @@
             </div>
         @endif
 
-        <!-- Main Product Content -->
         <div class="bg-white rounded-xl shadow-sm overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
-                <!-- Image Gallery -->
                 <div class="p-6 border-r border-gray-100">
-                    <!-- Main Image -->
                     <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-4 relative group" onclick="ProductGallery.openModal()">
                         @if($product->image)
                             <img id="mainImage" 
@@ -149,7 +166,6 @@
                                  alt="{{ $product->name }}" 
                                  class="w-full h-full object-cover image-gallery-main">
                             
-                            <!-- Zoom Indicator -->
                             <div class="absolute top-4 right-4 bg-white/80 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path>
@@ -167,33 +183,30 @@
                         @endif
                     </div>
 
-                    <!-- Thumbnail Gallery -->
                     @if($product->images && count($product->images) > 0)
                         <div class="grid grid-cols-5 gap-2">
                             @if($product->image)
                                 <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-sage-500 hover:border-sage-600 transition-colors" 
-                                     onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $product->image) }}', this)">
+                                        onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $product->image) }}', this)">
                                     <img src="{{ asset('storage/' . $product->image) }}" 
-                                         alt="{{ $product->name }}" 
-                                         class="w-full h-full object-cover">
+                                            alt="{{ $product->name }}" 
+                                            class="w-full h-full object-cover">
                                 </div>
                             @endif
                             
                             @foreach($product->images as $image)
                                 <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-sage-300 transition-colors" 
-                                     onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $image) }}', this)">
+                                        onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $image) }}', this)">
                                     <img src="{{ asset('storage/' . $image) }}" 
-                                         alt="{{ $product->name }}" 
-                                         class="w-full h-full object-cover">
+                                            alt="{{ $product->name }}" 
+                                            class="w-full h-full object-cover">
                                 </div>
                             @endforeach
                         </div>
                     @endif
                 </div>
 
-                <!-- Product Details -->
                 <div class="p-6 space-y-6">
-                    <!-- Product Title & Badges -->
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 mb-3 leading-tight">{{ $product->name }}</h1>
                         <div class="flex items-center gap-2 mb-4">
@@ -206,14 +219,12 @@
                         </div>
                     </div>
 
-                    <!-- Price -->
                     <div class="pb-4 border-b border-gray-100">
                         <div class="text-3xl font-bold text-sage-700 mb-2">
                             Rp {{ number_format($product->price, 0, ',', '.') }}
                         </div>
                     </div>
 
-                    <!-- Store Rating & Sales -->
                     <div class="flex items-center justify-between pb-4 border-b border-gray-100">
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center space-x-1">
@@ -229,7 +240,6 @@
                         </div>
                     </div>
 
-                    <!-- Store Information -->
                     <div class="bg-gray-50 rounded-xl p-4">
                         <h3 class="font-semibold text-gray-900 mb-3">Informasi Toko</h3>
                         <div class="flex items-center justify-between">
@@ -253,7 +263,6 @@
                         </div>
                     </div>
 
-                    <!-- Product Details -->
                     <div class="bg-gray-50 rounded-xl p-4">
                         <h3 class="font-semibold text-gray-900 mb-3">Detail Produk</h3>
                         <div class="grid grid-cols-2 gap-4 text-sm">
@@ -280,34 +289,32 @@
                         </div>
                     </div>
 
-                    <!-- Quantity & Actions -->
                     @auth
                         @if($product->status === 'tersedia')
                             <form action="{{ route('cart.add') }}" method="POST" id="addToCartForm">
                                 @csrf
                                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                                 
-                                <!-- Quantity Selector -->
                                 <div class="mb-6">
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah:</label>
                                     <div class="flex items-center w-32">
                                         <button type="button" 
-                                                id="decreaseBtn"
+                                                id="decreaseBtn" {{-- Tombol KURANG --}}
                                                 class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-l-lg hover:bg-gray-50 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
                                             </svg>
                                         </button>
                                         <input type="number" 
-                                               id="quantity" 
-                                               name="quantity" 
-                                               value="1" 
-                                               min="1" 
-                                               max="{{ $product->stock ?? 99 }}" 
-                                               readonly
-                                               class="w-12 h-10 text-center border-t border-b border-gray-300 focus:outline-none quantity-input">
+                                                id="quantity" {{-- Input KUANTITAS --}}
+                                                name="quantity" 
+                                                value="1" 
+                                                min="1" 
+                                                max="{{ $product->stock ?? 99 }}" 
+                                                readonly 
+                                                class="w-12 h-10 text-center border-t border-b border-gray-300 focus:outline-none quantity-input">
                                         <button type="button" 
-                                                id="increaseBtn"
+                                                id="increaseBtn" {{-- Tombol TAMBAH --}}
                                                 class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-r-lg hover:bg-gray-50 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -316,7 +323,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Action Buttons -->
                                 <div class="space-y-3">
                                     <button type="submit" 
                                             class="w-full bg-sage-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-sage-700 btn-primary flex items-center justify-center gap-2">
@@ -325,14 +331,14 @@
                                         </svg>
                                         Tambah ke Keranjang
                                     </button>
-                                    <button type="button" 
-                                            onclick="ProductActions.buyNow()" 
+                                    <button type="button" id="buyNowButton"
                                             class="w-full border-2 border-sage-600 text-sage-600 font-semibold py-3 px-6 rounded-lg hover:bg-sage-50 btn-secondary">
                                         Beli Sekarang
                                     </button>
                                 </div>
                             </form>
                         @else
+                            {{-- Pesan jika produk tidak tersedia --}}
                             <div class="text-center py-8 bg-red-50 rounded-xl border border-red-200">
                                 <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -342,6 +348,7 @@
                             </div>
                         @endif
                     @else
+                        {{-- Jika user belum login, tampilkan tombol login/daftar --}}
                         <div class="space-y-3">
                             <a href="{{ route('login') }}" 
                                class="block w-full bg-sage-600 text-white py-4 px-6 rounded-lg font-semibold text-center hover:bg-sage-700 btn-primary">
@@ -354,17 +361,16 @@
                         </div>
                     @endauth
 
-                    <!-- Social Actions -->
                     <div class="flex items-center justify-between pt-4 border-t border-gray-100">
                         <div class="flex items-center space-x-6">
-                            <button onclick="ProductActions.toggleWishlist()" 
+                            <button id="wishlistButton" 
                                     class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors group">
                                 <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                                 </svg>
                                 <span class="text-sm font-medium">Wishlist</span>
                             </button>
-                            <button onclick="ProductActions.shareProduct()" 
+                            <button id="shareButton" 
                                     class="flex items-center space-x-2 text-gray-500 hover:text-sage-600 transition-colors group">
                                 <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.364 3.682a3 3 0 105.639-2.364L17.323 14.682a3 3 0 00-6.677 0L8.684 13.342zM9 12a3 3 0 110-6 3 3 0 010 6z"></path>
@@ -378,7 +384,6 @@
             </div>
         </div>
 
-        <!-- Product Description -->
         @if($product->description)
             <div class="bg-white rounded-xl shadow-sm mt-6 p-6">
                 <h3 class="font-bold text-gray-900 mb-4 text-lg">Deskripsi Produk</h3>
@@ -388,7 +393,6 @@
             </div>
         @endif
 
-        <!-- Related Products -->
         @if($relatedProducts && $relatedProducts->count() > 0)
             <div class="mt-8">
                 <div class="flex items-center justify-between mb-6">
@@ -418,7 +422,6 @@
                                         </div>
                                     @endif
                                     
-                                    <!-- Condition Badge -->
                                     <div class="absolute top-2 left-2">
                                         <span class="bg-white/90 text-gray-700 px-2 py-1 rounded text-xs font-medium backdrop-blur-sm">
                                             {{ ucfirst($relatedProduct->condition) }}
@@ -447,18 +450,17 @@
     </div>
 </div>
 
-<!-- Mobile Sticky Bar -->
 @auth
     @if($product->status === 'tersedia')
         <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 sticky-buy-bar">
             <div class="px-4 py-3">
-                <form action="{{ route('cart.add') }}" method="POST" class="flex gap-3">
+                <form action="{{ route('cart.add') }}" method="POST" id="mobileAddToCartForm" class="flex gap-3">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    <input type="hidden" name="quantity" value="1">
+                    {{-- Input quantity ini akan diperbarui oleh JavaScript agar sesuai dengan input utama --}}
+                    <input type="hidden" name="quantity" id="mobileQuantity" value="1"> 
                     
-                    <button type="button" 
-                            onclick="ProductActions.buyNow()" 
+                    <button type="button" id="mobileBuyNowButton"
                             class="flex-1 border-2 border-sage-600 text-sage-600 font-semibold py-3 px-4 rounded-lg text-sm">
                         Beli Sekarang
                     </button>
@@ -475,7 +477,6 @@
     @endif
 @endauth
 
-<!-- Image Modal -->
 <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden items-center justify-center p-4">
     <div class="relative max-w-4xl max-h-full">
         <button onclick="ProductGallery.closeModal()" 
@@ -490,37 +491,71 @@
 
 @push('scripts')
 <script>
-// Quantity Controller
+// Class untuk mengontrol kuantitas produk
 class QuantityController {
     constructor() {
         this.quantityInput = document.getElementById('quantity');
         this.decreaseBtn = document.getElementById('decreaseBtn');
         this.increaseBtn = document.getElementById('increaseBtn');
-        
+        this.mobileQuantityInput = document.getElementById('mobileQuantity'); 
+
         this.init();
     }
     
     init() {
-        if (!this.quantityInput) return;
+        if (!this.quantityInput) {
+            console.error('ERROR: Quantity input (#quantity) not found. QuantityController will not function.');
+            return; 
+        }
         
-        this.decreaseBtn?.addEventListener('click', () => this.updateQuantity(-1));
-        this.increaseBtn?.addEventListener('click', () => this.updateQuantity(1));
+        if (this.decreaseBtn) {
+            this.decreaseBtn.addEventListener('click', () => {
+                this.updateQuantity(-1);
+            });
+        } else {
+            console.warn('WARNING: Decrease button (#decreaseBtn) not found.');
+        }
+
+        if (this.increaseBtn) {
+            this.increaseBtn.addEventListener('click', () => {
+                this.updateQuantity(1);
+            });
+        } else {
+            console.warn('WARNING: Increase button (#increaseBtn) not found.');
+        }
+
+        if (this.mobileQuantityInput) {
+            this.mobileQuantityInput.value = this.quantityInput.value;
+        }
     }
     
     updateQuantity(change) {
+        if (!this.quantityInput) {
+            console.error('Error: quantityInput is null in updateQuantity. This should not happen after init check.');
+            return;
+        }
+
         const currentValue = parseInt(this.quantityInput.value) || 1;
         const minValue = parseInt(this.quantityInput.getAttribute('min')) || 1;
-        const maxValue = parseInt(this.quantityInput.getAttribute('max')) || 99;
+        const maxValue = parseInt(this.quantityInput.getAttribute('max')) || 99; 
         
-        const newValue = currentValue + change;
+        let newValue = currentValue + change;
         
-        if (newValue >= minValue && newValue <= maxValue) {
-            this.quantityInput.value = newValue;
+        if (newValue < minValue) {
+            newValue = minValue;
+        } else if (newValue > maxValue) {
+            newValue = maxValue;
+        }
+
+        this.quantityInput.value = newValue;
+
+        if (this.mobileQuantityInput) {
+            this.mobileQuantityInput.value = newValue;
         }
     }
 }
 
-// Product Gallery
+// Class untuk mengelola galeri gambar produk
 class ProductGallery {
     static changeMainImage(src, element) {
         const mainImage = document.getElementById('mainImage');
@@ -528,7 +563,6 @@ class ProductGallery {
             mainImage.src = src;
         }
         
-        // Update active thumbnail
         document.querySelectorAll('[onclick*="changeMainImage"]').forEach(thumb => {
             thumb.classList.remove('border-sage-500');
             thumb.classList.add('border-transparent');
@@ -549,7 +583,7 @@ class ProductGallery {
             modalImage.src = mainImage.src;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; 
         }
     }
 
@@ -563,15 +597,39 @@ class ProductGallery {
     }
 }
 
-// Product Actions
+// Class untuk tindakan terkait produk lainnya
 class ProductActions {
-    static buyNow() {
-        const quantityInput = document.getElementById('quantity');
-        const quantity = quantityInput ? quantityInput.value : 1;
-        alert(`Fitur beli sekarang dengan ${quantity} item akan segera tersedia!`);
+    constructor() {
+        this.buyNowButton = document.getElementById('buyNowButton');
+        this.mobileBuyNowButton = document.getElementById('mobileBuyNowButton');
+        this.wishlistButton = document.getElementById('wishlistButton');
+        this.shareButton = document.getElementById('shareButton');
+
+        this.init();
     }
 
-    static toggleWishlist() {
+    init() {
+        if (this.buyNowButton) {
+            this.buyNowButton.addEventListener('click', () => this.buyNow());
+        }
+        if (this.mobileBuyNowButton) {
+            this.mobileBuyNowButton.addEventListener('click', () => this.buyNow());
+        }
+        if (this.wishlistButton) {
+            this.wishlistButton.addEventListener('click', (event) => this.toggleWishlist(event));
+        }
+        if (this.shareButton) {
+            this.shareButton.addEventListener('click', () => this.shareProduct());
+        }
+    }
+
+    buyNow() {
+        const quantityInput = document.getElementById('quantity');
+        const quantity = quantityInput ? quantityInput.value : 1;
+        alert(`Fitur beli sekarang dengan ${quantity} item akan segera tersedia! Ini akan langsung menuju halaman checkout.`);
+    }
+
+    toggleWishlist(event) {
         const button = event.currentTarget;
         const svg = button.querySelector('svg');
         const span = button.querySelector('span');
@@ -591,15 +649,14 @@ class ProductActions {
         }
     }
 
-    static shareProduct() {
+    shareProduct() {
         if (navigator.share) {
             navigator.share({
                 title: '{{ $product->name }}',
-                text: 'Lihat produk ini di MintMarket',
+                text: 'Lihat produk ini di MintMarket!',
                 url: window.location.href
-            }).catch(console.error);
+            }).catch(error => console.error('Error sharing:', error));
         } else {
-            // Fallback copy to clipboard
             navigator.clipboard.writeText(window.location.href).then(() => {
                 alert('Link produk telah disalin ke clipboard!');
             }).catch(() => {
@@ -609,12 +666,11 @@ class ProductActions {
     }
 }
 
-// Initialize on DOM ready
+// Inisialisasi pada saat DOM sudah siap
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize quantity controller
     new QuantityController();
+    new ProductActions();
     
-    // Modal event listeners
     const imageModal = document.getElementById('imageModal');
     if (imageModal) {
         imageModal.addEventListener('click', function(e) {
@@ -624,7 +680,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Keyboard navigation
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             ProductGallery.closeModal();

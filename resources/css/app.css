@@ -1,3 +1,202 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ===========================================
+   GLOBAL STYLES
+   =========================================== */
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ===========================================
+   INPUT IMPROVEMENTS
+   =========================================== */
+
+/* Remove number input spinners completely */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Quantity input specific styles */
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Input focus effects */
+.input-smooth {
+    transition: all 0.2s ease-in-out;
+}
+
+.input-smooth:focus {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 3px rgba(167, 193, 168, 0.1);
+}
+
+/* Custom focus states with sage theme */
+.focus-sage:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(167, 193, 168, 0.3);
+    border-color: rgb(167, 193, 168);
+}
+
+.quantity-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(167, 193, 168, 0.3);
+}
+
+/* ===========================================
+   BUTTON IMPROVEMENTS
+   =========================================== */
+
+/* Button hover effects */
+.btn-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-smooth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Interactive button effects */
+.btn-interactive {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-interactive:hover {
+    transform: translateY(-1px);
+}
+
+.btn-interactive:active {
+    transform: scale(0.95);
+}
+
+/* Better button interactions for cart */
+button:active {
+    transform: scale(0.95);
+}
+
+/* Quantity button pulse effect */
+.quantity-btn:active {
+    animation: pulse-soft 0.2s ease-in-out;
+}
+
+/* ===========================================
+   CARD & LAYOUT IMPROVEMENTS
+   =========================================== */
+
+/* Card hover effects */
+.card-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover lift effect */
+.hover-lift:hover {
+    transform: translateY(-2px);
+}
+
+/* ===========================================
+   LOADING & ANIMATION IMPROVEMENTS
+   =========================================== */
+
+/* Loading overlay smooth transition */
+.loading-overlay {
+    backdrop-filter: blur(2px);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Smooth animations */
+.animate-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===========================================
+   KEYFRAME ANIMATIONS
+   =========================================== */
+
+/* Original pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Soft pulse animation for loading states */
+@keyframes pulse-soft {
+    0%, 100% { 
+        opacity: 1; 
+    }
+    50% { 
+        opacity: 0.8; 
+    }
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+}
+
+.pulse-soft {
+    animation: pulse-soft 1s ease-in-out infinite;
+}
+
+/* ===========================================
+   UTILITY CLASSES
+   =========================================== */
+
+/* Hide scrollbar but keep functionality */
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Smooth text selection */
+::selection {
+    background-color: rgba(167, 193, 168, 0.3);
+    color: rgb(31, 41, 55);
+}
+
+::-moz-selection {
+    background-color: rgba(167, 193, 168, 0.3);
+    color: rgb(31, 41, 55);
+}
