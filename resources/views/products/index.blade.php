@@ -12,112 +12,80 @@
         </p>
     </div>
 
-    <!-- Search Bar -->
-    <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <form action="{{ route('products.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
-            <div class="flex-1">
-                <input type="text" name="search" value="{{ request('search') }}" 
-                       placeholder="Cari nama produk..."
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-sage-500 focus:border-sage-500 text-lg">
-            </div>
-            <div class="flex gap-2">
-                <!-- Filter Button -->
-                <button type="button" id="filterButton"
-                        class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
-                    </svg>
-                    Filter
-                    @if(request()->hasAny(['category', 'condition', 'min_price', 'max_price']))
-                        <span class="bg-sage-600 text-white text-xs px-2 py-1 rounded-full">
-                            {{ collect(request()->only(['category', 'condition', 'min_price', 'max_price']))->filter()->count() }}
-                        </span>
-                    @endif
-                </button>
-                
-                <!-- Search Button -->
-                <button type="submit" 
-                        class="bg-sage-600 text-white px-6 py-3 rounded-lg hover:bg-sage-700 transition-colors">
-                    Cari
-                </button>
-                
-                <!-- Reset Button -->
-                @if(request()->hasAny(['search', 'category', 'condition', 'min_price', 'max_price']))
-                    <a href="{{ route('products.index') }}" 
-                       class="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors">
-                        Reset
-                    </a>
-                @endif
-            </div>
-            
-            <!-- Hidden inputs to preserve current filters -->
-            @if(request('category'))
-                <input type="hidden" name="category" value="{{ request('category') }}">
-            @endif
-            @if(request('condition'))
-                <input type="hidden" name="condition" value="{{ request('condition') }}">
-            @endif
-            @if(request('min_price'))
-                <input type="hidden" name="min_price" value="{{ request('min_price') }}">
-            @endif
-            @if(request('max_price'))
-                <input type="hidden" name="max_price" value="{{ request('max_price') }}">
-            @endif
-        </form>
-    </div>
-
-    <!-- Results Info & Sort -->
+    <!-- Results Info & Controls -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
             <p class="text-gray-600">
                 Menampilkan {{ $products->firstItem() ?? 0 }}-{{ $products->lastItem() ?? 0 }} 
                 dari {{ $products->total() }} produk
             </p>
+            
             <!-- Active Filters -->
             @if(request()->hasAny(['category', 'condition', 'min_price', 'max_price']))
                 <div class="flex flex-wrap gap-2 mt-2">
                     @if(request('category'))
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-sage-100 text-sage-800">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#A7C1A8] text-white">
                             Kategori: {{ $categories->where('slug', request('category'))->first()->name ?? request('category') }}
-                            <a href="{{ request()->fullUrlWithQuery(['category' => null]) }}" class="ml-2 text-sage-600 hover:text-sage-800">×</a>
+                            <a href="{{ request()->fullUrlWithQuery(['category' => null]) }}" class="ml-2 text-white/80 hover:text-white">×</a>
                         </span>
                     @endif
                     @if(request('condition'))
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-sage-100 text-sage-800">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#819A91] text-white">
                             Kondisi: {{ ucfirst(request('condition')) }}
-                            <a href="{{ request()->fullUrlWithQuery(['condition' => null]) }}" class="ml-2 text-sage-600 hover:text-sage-800">×</a>
+                            <a href="{{ request()->fullUrlWithQuery(['condition' => null]) }}" class="ml-2 text-white/80 hover:text-white">×</a>
                         </span>
                     @endif
                     @if(request('min_price'))
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-sage-100 text-sage-800">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700">
                             Min: Rp {{ number_format(request('min_price'), 0, ',', '.') }}
-                            <a href="{{ request()->fullUrlWithQuery(['min_price' => null]) }}" class="ml-2 text-sage-600 hover:text-sage-800">×</a>
+                            <a href="{{ request()->fullUrlWithQuery(['min_price' => null]) }}" class="ml-2 text-gray-500 hover:text-gray-700">×</a>
                         </span>
                     @endif
                     @if(request('max_price'))
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-sage-100 text-sage-800">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-700">
                             Max: Rp {{ number_format(request('max_price'), 0, ',', '.') }}
-                            <a href="{{ request()->fullUrlWithQuery(['max_price' => null]) }}" class="ml-2 text-sage-600 hover:text-sage-800">×</a>
+                            <a href="{{ request()->fullUrlWithQuery(['max_price' => null]) }}" class="ml-2 text-gray-500 hover:text-gray-700">×</a>
                         </span>
                     @endif
                 </div>
             @endif
         </div>
         
-        <!-- Sort Dropdown -->
-        <form action="{{ route('products.index') }}" method="GET" class="flex items-center gap-2">
-            @foreach(request()->except('sort') as $key => $value)
-                <input type="hidden" name="{{ $key }}" value="{{ $value }}">
-            @endforeach
-            <label class="text-sm text-gray-600">Urutkan:</label>
-            <select name="sort" onchange="this.form.submit()" 
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500">
-                <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
-                <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Nama A-Z</option>
-                <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Harga Terendah</option>
-                <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Harga Tertinggi</option>
-            </select>
-        </form>
+        <!-- Filter and Sort Controls -->
+        <div class="flex items-center gap-3">
+            <!-- Filter Button -->
+            <button type="button" 
+                    id="filterButton"
+                    class="inline-flex items-center px-4 py-2 bg-[#A7C1A8] text-white rounded-lg hover:bg-[#819A91] transition-colors gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.207A1 1 0 013 6.5V4z"></path>
+                </svg>
+                Filter
+                @if(request()->hasAny(['category', 'condition', 'min_price', 'max_price']))
+                    <span class="bg-white text-[#A7C1A8] text-xs px-2 py-1 rounded-full font-medium">
+                        {{ collect(request()->only(['category', 'condition', 'min_price', 'max_price']))->filter()->count() }}
+                    </span>
+                @endif
+            </button>
+            
+            <!-- Sort Dropdown -->
+            <div class="flex items-center gap-2">
+                <label class="text-sm text-gray-600">Urutkan:</label>
+                <form action="{{ route('products.index') }}" method="GET" class="inline">
+                    @foreach(request()->except('sort') as $key => $value)
+                        <input type="hidden" name="{{ $key }}" value="{{ $value }}">
+                    @endforeach
+                    <select name="sort" 
+                            onchange="this.form.submit()" 
+                            class="px-3 py-2 border border-gray-300 rounded-md focus:ring-[#A7C1A8] focus:border-[#A7C1A8] text-sm bg-white">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
+                        <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Nama A-Z</option>
+                        <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Harga Terendah</option>
+                        <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Harga Tertinggi</option>
+                    </select>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Products Grid -->
@@ -154,7 +122,7 @@
                             <h3 class="font-semibold text-gray-900 text-sm mb-2 line-clamp-2">{{ $product->name }}</h3>
                             
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-lg font-bold text-sage-600">
+                                <span class="text-lg font-bold text-[#819A91]">
                                     Rp {{ number_format($product->price, 0, ',', '.') }}
                                 </span>
                                 <span class="text-xs text-gray-500">
@@ -191,22 +159,22 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                 </svg>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">
-                    @if(request()->hasAny(['search', 'category', 'condition', 'min_price', 'max_price']))
+                    @if(request()->hasAny(['category', 'condition', 'min_price', 'max_price']))
                         Produk tidak ditemukan
                     @else
                         Belum Ada Produk
                     @endif
                 </h3>
                 <p class="text-gray-500 mb-4">
-                    @if(request()->hasAny(['search', 'category', 'condition', 'min_price', 'max_price']))
+                    @if(request()->hasAny(['category', 'condition', 'min_price', 'max_price']))
                         Coba ubah filter atau kata kunci pencarian
                     @else
                         Produk akan segera tersedia
                     @endif
                 </p>
-                @if(request()->hasAny(['search', 'category', 'condition', 'min_price', 'max_price']))
+                @if(request()->hasAny(['category', 'condition', 'min_price', 'max_price']))
                     <a href="{{ route('products.index') }}" 
-                       class="inline-flex items-center px-4 py-2 bg-sage-600 text-white rounded-md hover:bg-sage-700 transition-colors">
+                       class="inline-flex items-center px-4 py-2 bg-[#A7C1A8] text-white rounded-md hover:bg-[#819A91] transition-colors">
                         Lihat Semua Produk
                     </a>
                 @endif
@@ -239,11 +207,11 @@
                     <!-- Category Filter -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
-                        <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500">
+                        <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#A7C1A8] focus:border-[#A7C1A8]">
                             <option value="">Semua Kategori</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->slug }}" {{ request('category') == $category->slug ? 'selected' : '' }}>
-                                    {{ $category->name }} ({{ $category->products_count }})
+                                    {{ $category->name }} ({{ $category->products_count ?? 0 }})
                                 </option>
                             @endforeach
                         </select>
@@ -252,7 +220,7 @@
                     <!-- Condition Filter -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Kondisi</label>
-                        <select name="condition" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500">
+                        <select name="condition" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#A7C1A8] focus:border-[#A7C1A8]">
                             <option value="">Semua Kondisi</option>
                             <option value="baru" {{ request('condition') == 'baru' ? 'selected' : '' }}>Baru</option>
                             <option value="bekas" {{ request('condition') == 'bekas' ? 'selected' : '' }}>Bekas</option>
@@ -264,14 +232,14 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Harga Minimum</label>
                         <input type="number" name="min_price" value="{{ request('min_price') }}" 
                                placeholder="0"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#A7C1A8] focus:border-[#A7C1A8]">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Harga Maximum</label>
                         <input type="number" name="max_price" value="{{ request('max_price') }}" 
                                placeholder="1000000"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-sage-500 focus:border-sage-500">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#A7C1A8] focus:border-[#A7C1A8]">
                     </div>
                 </div>
                 
@@ -282,7 +250,7 @@
                         Reset Filter
                     </button>
                     <button type="submit" 
-                            class="px-4 py-2 bg-sage-600 text-white rounded-md hover:bg-sage-700">
+                            class="px-4 py-2 bg-[#A7C1A8] text-white rounded-md hover:bg-[#819A91]">
                         Terapkan Filter
                     </button>
                 </div>
@@ -326,4 +294,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>
 @endsection
