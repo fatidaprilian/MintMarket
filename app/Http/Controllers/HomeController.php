@@ -31,6 +31,20 @@ class HomeController extends Controller
             ->take(6)
             ->get();
 
-        return view('home', compact('featuredProducts', 'categories', 'popularStores'));
+        // Flash Sale Products (products with original_price > price)
+        $flashSaleProducts = Product::with(['store', 'category'])
+            ->available()
+            ->whereNotNull('original_price')
+            ->whereColumn('price', '<', 'original_price')
+            ->latest()
+            ->take(6)
+            ->get();
+
+        return view('home', compact(
+            'featuredProducts',
+            'categories',
+            'popularStores',
+            'flashSaleProducts'
+        ));
     }
 }

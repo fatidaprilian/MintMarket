@@ -6,11 +6,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-// use Illuminate\Database\Eloquent\SoftDeletes; // Hapus ini
 
 class Product extends Model
 {
-    use HasFactory; // Hapus SoftDeletes
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -22,9 +21,12 @@ class Product extends Model
         'slug',
         'description',
         'price',
+        'original_price', // TAMBAHAN BARU
         'condition',
+        'stock', // Tambah ini juga kalau belum ada
         'image',
         'status',
+        'is_active', // Tambah ini juga kalau belum ada
     ];
 
     /**
@@ -33,6 +35,8 @@ class Product extends Model
     protected $casts = [
         'image' => 'array',
         'price' => 'decimal:2',
+        'original_price' => 'decimal:2', // TAMBAHAN BARU
+        'is_active' => 'boolean',
     ];
 
     /**
@@ -72,12 +76,18 @@ class Product extends Model
      */
     public function scopeAvailable($query)
     {
-        return $query->where('status', 'tersedia');
+        return $query->where('status', 'tersedia')
+            ->where('is_active', true);
     }
 
     public function scopeSold($query)
     {
         return $query->where('status', 'terjual');
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
     }
 
     /**
@@ -89,11 +99,32 @@ class Product extends Model
     }
 
     /**
-     * Helper methods
+     * Helper methods & Accessors
      */
     public function getFormattedPriceAttribute()
     {
         return 'Rp ' . number_format($this->price, 0, ',', '.');
+    }
+
+    // ACCESSOR BARU UNTUK FLASH SALE
+    public function getFormattedOriginalPriceAttribute()
+    {
+        return 'Rp ' . number_format($this->original_price, 0, ',', '.');
+    }
+
+    // ACCESSOR BARU UNTUK DISCOUNT PERCENTAGE
+    public function getDiscountPercentageAttribute()
+    {
+        if ($this->original_price && $this->original_price > $this->price) {
+            return round((($this->original_price - $this->price) / $this->original_price) * 100);
+        }
+        return 0;
+    }
+
+    // ACCESSOR UNTUK CHECK APAKAH PRODUK SEDANG DISKON
+    public function getIsOnSaleAttribute()
+    {
+        return $this->original_price && $this->original_price > $this->price;
     }
 
     public function getMainImageAttribute()
@@ -106,6 +137,12 @@ class Product extends Model
 
     public function isAvailable()
     {
-        return $this->status === 'tersedia';
+        return $this->status === 'tersedia' && $this->is_active;
+    }
+
+    // HELPER METHOD BARU UNTUK FLASH SALE
+    public function isFlashSale()
+    {
+        return $this->is_on_sale;
     }
 }

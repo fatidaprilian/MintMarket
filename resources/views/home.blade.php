@@ -3,7 +3,6 @@
 @section('title', 'Beranda')
 
 @section('content')
-<!-- Hero Section dengan Sage Gradient -->
 <section class="bg-gradient-to-r from-sage-600 to-sage-700 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -13,49 +12,30 @@
                     <span class="text-sage-200">Mudah & Terpercaya</span>
                 </h1>
                 <p class="text-xl text-sage-100 mb-8">
-                    Temukan produk favorit Anda atau mulai berjualan dengan mudah di MintMarket
+                    Temukan produk favorit Anda dengan mudah di MintMarket.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <a href="{{ route('products.index') }}" 
                        class="bg-white text-sage-600 px-8 py-3 rounded-lg font-semibold hover:bg-sage-50 transition-colors text-center">
                         Mulai Belanja
                     </a>
-                    @auth
-                        @if(!auth()->user()->hasStore())
-                            <a href="{{ route('store.create') }}" 
-                               class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-sage-600 transition-colors text-center">
-                                Buka Toko
-                            </a>
-                        @endif
-                    @else
-                        <a href="{{ route('register') }}" 
-                           class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-sage-600 transition-colors text-center">
-                            Daftar Sekarang
-                        </a>
-                    @endauth
                 </div>
             </div>
             <div class="hidden lg:block">
-                <div class="relative">
-                    <div class="w-full h-96 bg-white/10 rounded-2xl backdrop-blur-sm p-8">
-                        <div class="h-full flex items-center justify-center text-white/50">
-                            <!-- Placeholder untuk hero image -->
-                            <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
-                            </svg>
-                        </div>
-                    </div>
+                <div class="w-full h-80 bg-white/20 rounded-2xl flex items-center justify-center">
+                     <svg class="w-24 h-24 text-white/50" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                    </svg>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Categories Section -->
 <section class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Kategori Populer</h2>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Kategori Pilihan</h2>
             <p class="text-gray-600">Temukan produk sesuai kebutuhan Anda</p>
         </div>
         
@@ -92,108 +72,159 @@
     </div>
 </section>
 
-<!-- Featured Products Section -->
+@if($flashSaleProducts && $flashSaleProducts->count() > 0)
 <section class="py-16 bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Produk Terbaru</h2>
-            <p class="text-gray-600">Produk-produk terbaru dari penjual terpercaya</p>
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <h2 class="text-2xl font-bold text-orange-600">Flash Sale</h2>
+                <div class="flex items-center space-x-2">
+                    <div class="bg-gray-900 text-white rounded px-2 py-1 text-lg font-mono" id="fs_hours"></div>
+                    <span class="text-gray-900 font-bold">:</span>
+                    <div class="bg-gray-900 text-white rounded px-2 py-1 text-lg font-mono" id="fs_minutes"></div>
+                    <span class="text-gray-900 font-bold">:</span>
+                    <div class="bg-gray-900 text-white rounded px-2 py-1 text-lg font-mono" id="fs_seconds"></div>
+                </div>
+            </div>
+            <a href="{{ route('products.index') }}?flash_sale=1" class="text-sage-600 hover:text-sage-700 font-medium flex items-center">
+                Lihat Semua <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </a>
         </div>
         
-        @if($featuredProducts && $featuredProducts->count() > 0)
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                @foreach($featuredProducts as $product)
-                    <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                        <a href="{{ route('products.show', $product) }}">
-                            <div class="aspect-square bg-gray-200 relative overflow-hidden">
+        <div class="relative">
+            <div id="flash-sale-container" class="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide">
+                @foreach($flashSaleProducts as $product)
+                    <div class="flex-shrink-0 w-40">
+                        <a href="{{ route('products.show', $product) }}" class="block bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow">
+                            <div class="aspect-square bg-gray-200 relative">
                                 @if($product->main_image)
-                                    <img src="{{ asset('storage/' . $product->main_image) }}" 
-                                         alt="{{ $product->name }}" 
-                                         class="w-full h-full object-cover hover:scale-105 transition-transform duration-300">
+                                    <img src="{{ asset('storage/' . $product->main_image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                                 @else
-                                    <div class="w-full h-full flex items-center justify-center text-gray-400">
-                                        <svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
-                                        </svg>
+                                    <div class="w-full h-full flex items-center justify-center text-gray-400"><svg class="w-10 h-10" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg></div>
+                                @endif
+                                @if($product->discount_percentage > 0)
+                                    <div class="absolute top-0 right-0 bg-orange-500 text-white text-xs font-bold px-2 py-1">
+                                        {{ $product->discount_percentage }}%
                                     </div>
                                 @endif
                             </div>
-                            
-                            <div class="p-4">
-                                <h3 class="font-medium text-gray-900 mb-2 line-clamp-2">{{ $product->name }}</h3>
-                                <p class="text-lg font-bold text-sage-600 mb-2">{{ $product->formatted_price }}</p>
-                                <div class="flex items-center justify-between text-sm text-gray-500">
-                                    <span>{{ $product->store->name ?? 'Toko' }}</span>
-                                    <span class="bg-gray-100 px-2 py-1 rounded text-xs">{{ $product->condition }}</span>
+                            <div class="p-2">
+                                <h3 class="text-sm text-gray-800 line-clamp-2 mb-2 h-10">{{ $product->name }}</h3>
+                                <div class="space-y-1">
+                                    @if($product->original_price && $product->original_price > $product->price)
+                                        <span class="text-xs text-gray-400 line-through block">{{ $product->formatted_original_price }}</span>
+                                    @endif
+                                    <span class="text-base font-bold text-orange-600">{{ $product->formatted_price }}</span>
+                                </div>
+                                <div class="mt-2 h-4 bg-orange-100 rounded-full relative">
+                                    <div class="h-full bg-orange-500 rounded-full" style="width: {{ rand(30, 80) }}%;"></div>
+                                    <span class="absolute inset-0 text-white text-xs font-semibold flex items-center justify-center">Stok Terbatas</span>
                                 </div>
                             </div>
                         </a>
                     </div>
                 @endforeach
             </div>
-        @else
-            <div class="text-center py-12">
-                <p class="text-gray-500">Belum ada produk tersedia</p>
+        </div>
+    </div>
+</section>
+@endif
+
+<section class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Rekomendasi Untukmu</h2>
+        </div>
+        
+        @if($featuredProducts && $featuredProducts->count() > 0)
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                @foreach($featuredProducts as $product)
+                    <div class="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow overflow-hidden border border-gray-100">
+                        <a href="{{ route('products.show', $product) }}">
+                            <div class="aspect-square bg-gray-200 relative">
+                                @if($product->main_image)
+                                    <img src="{{ asset('storage/' . $product->main_image) }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-gray-400"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path></svg></div>
+                                @endif
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-medium text-gray-900 mb-2 line-clamp-2">{{ $product->name }}</h3>
+                                <p class="text-lg font-bold text-sage-600 mb-2">{{ $product->formatted_price }}</p>
+                                <div class="text-sm text-gray-500 space-y-1">
+                                     <div>
+                                        <span class="font-semibold text-gray-700">Toko:</span> {{ $product->store->name ?? 'N/A' }}
+                                     </div>
+                                     <div>
+                                         <span class="font-semibold text-gray-700">Lokasi:</span> {{ $product->store->city ?? 'Indonesia' }}
+                                     </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
             </div>
         @endif
         
-        <div class="text-center">
-            <a href="{{ route('products.index') }}" 
-               class="bg-sage-600 text-white px-8 py-3 rounded-lg hover:bg-sage-700 transition-colors inline-flex items-center">
-                Lihat Semua Produk
-                <svg class="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
+        <div class="text-center mt-12">
+            <a href="{{ route('products.index') }}" class="bg-sage-600 text-white px-10 py-3 rounded-lg hover:bg-sage-700 transition-colors inline-flex items-center font-semibold">
+                Lihat Lebih Banyak
             </a>
         </div>
     </div>
 </section>
 
-<!-- Popular Stores Section -->
-<section class="py-16 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Toko Populer</h2>
-            <p class="text-gray-600">Toko-toko terpercaya dengan produk berkualitas</p>
-        </div>
-        
-        @if($popularStores && $popularStores->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @foreach($popularStores as $store)
-                    <a href="{{ route('stores.show', $store) }}" 
-                       class="block bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                        <div class="flex items-center space-x-4 mb-4">
-                            <div class="w-12 h-12 bg-gradient-to-br from-sage-100 to-sage-200 rounded-full flex items-center justify-center">
-                                <span class="text-sage-600 font-bold">{{ substr($store->name, 0, 1) }}</span>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">{{ $store->name }}</h3>
-                                <p class="text-sm text-gray-500">{{ $store->city ?? 'Kota' }}, {{ $store->province ?? 'Provinsi' }}</p>
-                            </div>
-                        </div>
-                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ $store->description ?? 'Deskripsi toko' }}</p>
-                        <div class="flex justify-between text-sm text-gray-500">
-                            <span>{{ $store->products_count ?? 0 }} produk</span>
-                            <span class="text-sage-600">{{ $store->is_active ? 'Aktif' : 'Tidak Aktif' }}</span>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        @else
-            <div class="text-center py-12">
-                <p class="text-gray-500">Belum ada toko tersedia</p>
-            </div>
-        @endif
-        
-        <div class="text-center mt-8">
-            <a href="{{ route('stores.index') }}" 
-               class="inline-flex items-center text-sage-600 hover:text-sage-700 font-medium">
-                Lihat Semua Toko
-                <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </a>
-        </div>
-    </div>
-</section>
 @endsection
+
+@push('scripts')
+<style>
+/* Utility untuk menyembunyikan scrollbar tapi tetap bisa di-scroll */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+</style>
+
+<script>
+// Flash Sale Countdown Timer
+function startFlashSaleCountdown() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    const countdownDate = tomorrow.getTime();
+    
+    const timer = setInterval(function() {
+        const now = new Date().getTime();
+        const distance = countdownDate - now;
+        
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+        const hoursEl = document.getElementById('fs_hours');
+        const minutesEl = document.getElementById('fs_minutes');
+        const secondsEl = document.getElementById('fs_seconds');
+        
+        if (hoursEl) hoursEl.innerHTML = String(hours).padStart(2, '0');
+        if (minutesEl) minutesEl.innerHTML = String(minutes).padStart(2, '0');
+        if (secondsEl) secondsEl.innerHTML = String(seconds).padStart(2, '0');
+        
+        if (distance < 0) {
+            clearInterval(timer);
+            if (hoursEl) hoursEl.innerHTML = '00';
+            if (minutesEl) minutesEl.innerHTML = '00';
+            if (secondsEl) secondsEl.innerHTML = '00';
+        }
+    }, 1000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('fs_hours')) {
+        startFlashSaleCountdown();
+    }
+});
+</script>
+@endpush
