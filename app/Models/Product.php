@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,9 +12,6 @@ class Product extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'store_id',
         'category_id',
@@ -21,63 +19,55 @@ class Product extends Model
         'slug',
         'description',
         'price',
-        'original_price', // TAMBAHAN BARU
+        'original_price',
+        'flash_sale_price',
+        'flash_sale_end_date',
         'condition',
-        'stock', // Tambah ini juga kalau belum ada
+        'stock',
         'image',
         'status',
-        'is_active', // Tambah ini juga kalau belum ada
+        'is_active',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'image' => 'array',
         'price' => 'decimal:2',
-        'original_price' => 'decimal:2', // TAMBAHAN BARU
+        'original_price' => 'decimal:2',
+        'flash_sale_price' => 'decimal:2',
+        'flash_sale_end_date' => 'datetime',
         'is_active' => 'boolean',
     ];
 
     /**
-     * Relasi produk ke toko yang menjualnya.
+     * ==========================================================
+     * RELATIONSHIPS
+     * ==========================================================
      */
+
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
     }
 
-    /**
-     * Relasi produk ke kategorinya.
-     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
-    /**
-     * Relasi ke transactions
-     */
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
     }
 
     /**
-     * Get user (owner) melalui store
+     * ==========================================================
+     * QUERY SCOPES
+     * ==========================================================
      */
-    public function getUserAttribute()
-    {
-        return $this->store->user;
-    }
 
-    /**
-     * Scopes
-     */
     public function scopeAvailable($query)
     {
-        return $query->where('status', 'tersedia')
-            ->where('is_active', true);
+        return $query->where('status', 'tersedia')->where('is_active', true);
     }
 
     public function scopeSold($query)
@@ -91,41 +81,10 @@ class Product extends Model
     }
 
     /**
-     * Route key name untuk model binding
+     * ==========================================================
+     * ATTRIBUTES & ACCESSORS
+     * ==========================================================
      */
-    public function getRouteKeyName()
-    {
-        return 'slug';
-    }
-
-    /**
-     * Helper methods & Accessors
-     */
-    public function getFormattedPriceAttribute()
-    {
-        return 'Rp ' . number_format($this->price, 0, ',', '.');
-    }
-
-    // ACCESSOR BARU UNTUK FLASH SALE
-    public function getFormattedOriginalPriceAttribute()
-    {
-        return 'Rp ' . number_format($this->original_price, 0, ',', '.');
-    }
-
-    // ACCESSOR BARU UNTUK DISCOUNT PERCENTAGE
-    public function getDiscountPercentageAttribute()
-    {
-        if ($this->original_price && $this->original_price > $this->price) {
-            return round((($this->original_price - $this->price) / $this->original_price) * 100);
-        }
-        return 0;
-    }
-
-    // ACCESSOR UNTUK CHECK APAKAH PRODUK SEDANG DISKON
-    public function getIsOnSaleAttribute()
-    {
-        return $this->original_price && $this->original_price > $this->price;
-    }
 
     public function getMainImageAttribute()
     {
@@ -135,14 +94,95 @@ class Product extends Model
         return $this->image;
     }
 
-    public function isAvailable()
+    public function getFormattedPriceAttribute()
     {
-        return $this->status === 'tersedia' && $this->is_active;
+        return 'Rp ' . number_format($this->price, 0, ',', '.');
     }
 
-    // HELPER METHOD BARU UNTUK FLASH SALE
-    public function isFlashSale()
+    /**
+     * ==========================================================
+     * LOGIKA HARGA & DISKON TERPUSAT (FINAL)
+     * ==========================================================
+     */
+
+    /**
+     * PERBAIKAN: Cek apakah flash sale sedang berlangsung SEKARANG.
+     * Logika ini sekarang memeriksa waktu mulai dan waktu berakhir sesi.
+     */
+    public function isFlashSaleActive(): bool
     {
-        return $this->is_on_sale;
+        if ($this->flash_sale_price === null || $this->flash_sale_end_date === null) {
+            return false;
+        }
+
+        // Hitung waktu mulai sesi (dengan asumsi durasi 14 jam)
+        $sessionStartTime = $this->flash_sale_end_date->copy()->subHours(14);
+
+        // Return true HANYA jika waktu saat ini berada di antara waktu mulai dan berakhir
+        return now()->between($sessionStartTime, $this->flash_sale_end_date);
+    }
+
+    public function hasNormalDiscount(): bool
+    {
+        return !$this->isFlashSaleActive() &&
+            $this->original_price !== null &&
+            $this->original_price > $this->price;
+    }
+
+    protected function currentPrice(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->isFlashSaleActive() ? $this->flash_sale_price : $this->price
+        );
+    }
+
+    protected function strikethroughPrice(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if ($this->isFlashSaleActive()) {
+                    return $this->price;
+                }
+                if ($this->hasNormalDiscount()) {
+                    return $this->original_price;
+                }
+                return null;
+            }
+        );
+    }
+
+    public function getDiscountPercentageAttribute(): int
+    {
+        if ($this->isFlashSaleActive()) {
+            return round((($this->price - $this->flash_sale_price) / $this->price) * 100);
+        }
+        if ($this->hasNormalDiscount()) {
+            return round((($this->original_price - $this->price) / $this->original_price) * 100);
+        }
+        return 0;
+    }
+
+    public function getFormattedCurrentPriceAttribute()
+    {
+        return 'Rp ' . number_format($this->current_price, 0, ',', '.');
+    }
+
+    public function getFormattedStrikethroughPriceAttribute()
+    {
+        if ($this->strikethrough_price) {
+            return 'Rp ' . number_format($this->strikethrough_price, 0, ',', '.');
+        }
+        return null;
+    }
+
+    /**
+     * ==========================================================
+     * ROUTE MODEL BINDING
+     * ==========================================================
+     */
+
+    public function getRouteKeyName()
+    {
+        return 'slug';
     }
 }

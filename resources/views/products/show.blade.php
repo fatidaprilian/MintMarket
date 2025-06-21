@@ -3,6 +3,7 @@
 @section('title', $product->name)
 
 @push('styles')
+{{-- BLOK STYLE ANDA YANG LENGKAP SAYA KEMBALIKAN DI SINI --}}
 <style>
     /* Custom Sage Colors - Disesuaikan dari palet warna Anda */
     .bg-sage-600 { background-color: #A7C1A8; } /* Hijau yang lebih cerah */
@@ -160,9 +161,9 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
                 <div class="p-6 border-r border-gray-100">
                     <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-4 relative group" onclick="ProductGallery.openModal()">
-                        @if($product->image)
+                        @if($product->main_image)
                             <img id="mainImage" 
-                                 src="{{ asset('storage/' . $product->image) }}" 
+                                 src="{{ asset('storage/' . $product->main_image) }}" 
                                  alt="{{ $product->name }}" 
                                  class="w-full h-full object-cover image-gallery-main">
                             
@@ -183,202 +184,164 @@
                         @endif
                     </div>
 
-                    @if($product->images && count($product->images) > 0)
+                    @if(is_array($product->image) && count($product->image) > 1)
                         <div class="grid grid-cols-5 gap-2">
-                            @if($product->image)
-                                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-sage-500 hover:border-sage-600 transition-colors" 
-                                        onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $product->image) }}', this)">
-                                    <img src="{{ asset('storage/' . $product->image) }}" 
-                                            alt="{{ $product->name }}" 
-                                            class="w-full h-full object-cover">
-                                </div>
-                            @endif
-                            
-                            @foreach($product->images as $image)
-                                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 border-transparent hover:border-sage-300 transition-colors" 
-                                        onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $image) }}', this)">
+                            @foreach($product->image as $image)
+                                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 hover:border-sage-300 transition-colors @if($loop->first) border-sage-500 @else border-transparent @endif" 
+                                     onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $image) }}', this)">
                                     <img src="{{ asset('storage/' . $image) }}" 
-                                            alt="{{ $product->name }}" 
-                                            class="w-full h-full object-cover">
+                                         alt="{{ $product->name }}" 
+                                         class="w-full h-full object-cover">
                                 </div>
                             @endforeach
                         </div>
                     @endif
                 </div>
 
-                <div class="p-6 space-y-6">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 mb-3 leading-tight">{{ $product->name }}</h1>
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="px-3 py-1 rounded-full text-sm font-medium {{ $product->condition === 'baru' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                                {{ ucfirst($product->condition) }}
-                            </span>
-                            <span class="px-3 py-1 rounded-full text-sm font-medium {{ $product->status === 'tersedia' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ ucfirst($product->status) }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="pb-4 border-b border-gray-100">
-                        <div class="text-3xl font-bold text-sage-700 mb-2">
-                            Rp {{ number_format($product->price, 0, ',', '.') }}
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
-                        <div class="flex items-center space-x-4">
-                            <div class="flex items-center space-x-1">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <svg class="w-4 h-4 {{ $i <= 4 ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                                    </svg>
-                                @endfor
-                                <span class="text-sm text-gray-600 ml-2">4.5 (24 ulasan toko)</span>
-                            </div>
-                            <span class="text-gray-300">•</span>
-                            <span class="text-sm text-gray-600">85 terjual</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <h3 class="font-semibold text-gray-900 mb-3">Informasi Toko</h3>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 bg-gradient-to-br from-sage-600 to-sage-700 rounded-full flex items-center justify-center">
-                                    <span class="text-white font-bold text-lg">{{ strtoupper(substr($product->store->name, 0, 1)) }}</span>
-                                </div>
-                                <div>
-                                    <h4 class="font-medium text-gray-900">{{ $product->store->name }}</h4>
-                                    <p class="text-sm text-gray-600">{{ $product->store->city ?? 'Jakarta Selatan' }}, DKI Jakarta</p>
-                                    <div class="flex items-center space-x-2 mt-1">
-                                        <span class="text-xs text-gray-500">Aktif 16 hours ago</span>
-                                        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Online</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <a href="{{ route('stores.show', $product->store) }}" 
-                               class="bg-white border border-sage-600 text-sage-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-sage-50 transition-colors">
-                                Lihat Toko
-                            </a>
-                        </div>
-                    </div>
-
-                    <div class="bg-gray-50 rounded-xl p-4">
-                        <h3 class="font-semibold text-gray-900 mb-3">Detail Produk</h3>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Kondisi:</span>
-                                    <span class="font-medium">{{ ucfirst($product->condition) }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Berat:</span>
-                                    <span class="font-medium">{{ $product->weight ?? '924' }} gr</span>
-                                </div>
-                            </div>
-                            <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Kategori:</span>
-                                    <span class="font-medium">{{ $product->category->name }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Stok:</span>
-                                    <span class="font-medium text-sage-600">{{ $product->stock ?? '18' }}</span>
-                                </div>
+                <div class="p-6 space-y-6 flex flex-col">
+                    <div class="flex-grow space-y-6">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900 mb-3 leading-tight">{{ $product->name }}</h1>
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="px-3 py-1 rounded-full text-sm font-medium {{ $product->condition === 'baru' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
+                                    {{ ucfirst($product->condition) }}
+                                </span>
+                                <span class="px-3 py-1 rounded-full text-sm font-medium {{ $product->status === 'tersedia' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ ucfirst($product->status) }}
+                                </span>
                             </div>
                         </div>
-                    </div>
 
-                    @auth
-                        @if($product->status === 'tersedia')
-                            <form action="{{ route('cart.add') }}" method="POST" id="addToCartForm">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                
-                                <div class="mb-6">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah:</label>
-                                    <div class="flex items-center w-32">
-                                        <button type="button" 
-                                                id="decreaseBtn" {{-- Tombol KURANG --}}
-                                                class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-l-lg hover:bg-gray-50 transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
-                                            </svg>
-                                        </button>
-                                        <input type="number" 
-                                                id="quantity" {{-- Input KUANTITAS --}}
-                                                name="quantity" 
-                                                value="1" 
-                                                min="1" 
-                                                max="{{ $product->stock ?? 99 }}" 
-                                                readonly 
-                                                class="w-12 h-10 text-center border-t border-b border-gray-300 focus:outline-none quantity-input">
-                                        <button type="button" 
-                                                id="increaseBtn" {{-- Tombol TAMBAH --}}
-                                                class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-r-lg hover:bg-gray-50 transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
+                        <div class="pb-4 border-b border-gray-100">
+                            @if($product->isFlashSaleActive())
+                                {{-- Tampilan jika produk sedang FLASH SALE --}}
+                                <div class="flex items-center gap-3">
+                                    <span class="text-lg text-gray-400 line-through">{{ $product->formatted_price }}</span>
+                                    <span class="text-3xl font-bold text-orange-600">{{ $product->formatted_current_price }}</span>
+                                    <span class="px-3 py-1 rounded-full text-sm font-bold bg-orange-100 text-orange-600">
+                                        ⚡ Flash Sale!
+                                    </span>
                                 </div>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    Berakhir pada: <span class="font-medium text-orange-600">{{ $product->flash_sale_end_date->format('d M Y, H:i') }}</span>
+                                </p>
+                            @else
+                                {{-- Tampilan harga normal (jika tidak ada flash sale) --}}
+                                <div class="text-3xl font-bold text-sage-700">
+                                    {{ $product->formatted_price }}
+                                </div>
+                            @endif
+                        </div>
 
-                                <div class="space-y-3">
-                                    <button type="submit" 
-                                            class="w-full bg-sage-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-sage-700 btn-primary flex items-center justify-center gap-2">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m0 0L4 5H2m5 8h10m0 0v6a2 2 0 01-2 2H7a2 2 0 01-2-2v-6z"></path>
+                        <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-1">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <svg class="w-4 h-4 {{ $i <= 4 ? 'text-yellow-400' : 'text-gray-300' }}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                         </svg>
-                                        Tambah ke Keranjang
-                                    </button>
-                                    <button type="button" id="buyNowButton"
-                                            class="w-full border-2 border-sage-600 text-sage-600 font-semibold py-3 px-6 rounded-lg hover:bg-sage-50 btn-secondary">
-                                        Beli Sekarang
-                                    </button>
+                                    @endfor
+                                    <span class="text-sm text-gray-600 ml-2">4.5 (24 ulasan toko)</span>
                                 </div>
-                            </form>
-                        @else
-                            {{-- Pesan jika produk tidak tersedia --}}
-                            <div class="text-center py-8 bg-red-50 rounded-xl border border-red-200">
-                                <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <p class="text-red-600 font-medium">Produk Tidak Tersedia</p>
-                                <p class="text-red-500 text-sm mt-1">Hubungi penjual untuk informasi lebih lanjut</p>
+                                <span class="text-gray-300">•</span>
+                                <span class="text-sm text-gray-600">85 terjual</span>
                             </div>
-                        @endif
-                    @else
-                        {{-- Jika user belum login, tampilkan tombol login/daftar --}}
-                        <div class="space-y-3">
-                            <a href="{{ route('login') }}" 
-                               class="block w-full bg-sage-600 text-white py-4 px-6 rounded-lg font-semibold text-center hover:bg-sage-700 btn-primary">
-                                Login untuk Membeli
-                            </a>
-                            <p class="text-center text-sm text-gray-500">
-                                Belum punya akun? 
-                                <a href="{{ route('register') }}" class="text-sage-600 hover:text-sage-700 font-medium">Daftar di sini</a>
-                            </p>
                         </div>
-                    @endauth
 
-                    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div class="flex items-center space-x-6">
-                            <button id="wishlistButton" 
-                                    class="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors group">
-                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                                </svg>
-                                <span class="text-sm font-medium">Wishlist</span>
-                            </button>
-                            <button id="shareButton" 
-                                    class="flex items-center space-x-2 text-gray-500 hover:text-sage-600 transition-colors group">
-                                <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.364 3.682a3 3 0 105.639-2.364L17.323 14.682a3 3 0 00-6.677 0L8.684 13.342zM9 12a3 3 0 110-6 3 3 0 010 6z"></path>
-                                </svg>
-                                <span class="text-sm font-medium">Share</span>
-                            </button>
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h3 class="font-semibold text-gray-900 mb-3">Informasi Toko</h3>
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-sage-600 to-sage-700 rounded-full flex items-center justify-center">
+                                        <span class="text-white font-bold text-lg">{{ strtoupper(substr($product->store->name, 0, 1)) }}</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">{{ $product->store->name }}</h4>
+                                        <p class="text-sm text-gray-600">{{ $product->store->city ?? 'Jakarta Selatan' }}, DKI Jakarta</p>
+                                        <div class="flex items-center space-x-2 mt-1">
+                                            <span class="text-xs text-gray-500">Aktif 16 hours ago</span>
+                                            <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Online</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="{{ route('stores.show', $product->store) }}" 
+                                   class="bg-white border border-sage-600 text-sage-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-sage-50 transition-colors">
+                                    Lihat Toko
+                                </a>
+                            </div>
                         </div>
-                        <span class="text-sm text-gray-400">ID: #{{ $product->id }}</span>
+
+                        <div class="bg-gray-50 rounded-xl p-4">
+                            <h3 class="font-semibold text-gray-900 mb-3">Detail Produk</h3>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Kondisi:</span>
+                                        <span class="font-medium">{{ ucfirst($product->condition) }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Stok:</span>
+                                        <span class="font-medium text-sage-600">{{ $product->stock ?? '18' }}</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Kategori:</span>
+                                        <span class="font-medium">{{ $product->category->name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto">
+                        @auth
+                            @if($product->status === 'tersedia')
+                                <form action="{{ route('cart.add') }}" method="POST" id="addToCartForm">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    
+                                    <div class="mb-6">
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah:</label>
+                                        <div class="flex items-center w-32">
+                                            <button type="button" id="decreaseBtn" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-l-lg hover:bg-gray-50 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                                            </button>
+                                            <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ $product->stock ?? 99 }}" readonly class="w-12 h-10 text-center border-t border-b border-gray-300 focus:outline-none quantity-input">
+                                            <button type="button" id="increaseBtn" class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-r-lg hover:bg-gray-50 transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        <button type="submit" class="w-full bg-sage-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-sage-700 btn-primary flex items-center justify-center gap-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6m0 0L4 5H2m5 8h10m0 0v6a2 2 0 01-2 2H7a2 2 0 01-2-2v-6z"></path></svg>
+                                            Tambah ke Keranjang
+                                        </button>
+                                        <button type="button" id="buyNowButton" class="w-full border-2 border-sage-600 text-sage-600 font-semibold py-3 px-6 rounded-lg hover:bg-sage-50 btn-secondary">
+                                            Beli Sekarang
+                                        </button>
+                                    </div>
+                                </form>
+                            @else
+                                <div class="text-center py-8 bg-red-50 rounded-xl border border-red-200">
+                                    <svg class="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <p class="text-red-600 font-medium">Produk Tidak Tersedia</p>
+                                    <p class="text-red-500 text-sm mt-1">Hubungi penjual untuk informasi lebih lanjut</p>
+                                </div>
+                            @endif
+                        @else
+                            <div class="space-y-3">
+                                <a href="{{ route('login') }}" class="block w-full bg-sage-600 text-white py-4 px-6 rounded-lg font-semibold text-center hover:bg-sage-700 btn-primary">
+                                    Login untuk Membeli
+                                </a>
+                                <p class="text-center text-sm text-gray-500">
+                                    Belum punya akun? 
+                                    <a href="{{ route('register') }}" class="text-sage-600 hover:text-sage-700 font-medium">Daftar di sini</a>
+                                </p>
+                            </div>
+                        @endauth
                     </div>
                 </div>
             </div>
@@ -388,7 +351,7 @@
             <div class="bg-white rounded-xl shadow-sm mt-6 p-6">
                 <h3 class="font-bold text-gray-900 mb-4 text-lg">Deskripsi Produk</h3>
                 <div class="prose prose-sm max-w-none text-gray-700">
-                    <p class="leading-relaxed">{{ $product->description }}</p>
+                    {!! $product->description !!}
                 </div>
             </div>
         @endif
@@ -410,8 +373,8 @@
                         <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
                             <a href="{{ route('products.show', $relatedProduct) }}">
                                 <div class="aspect-square bg-gray-100 relative overflow-hidden">
-                                    @if($relatedProduct->image)
-                                        <img src="{{ asset('storage/' . $relatedProduct->image) }}" 
+                                    @if($relatedProduct->main_image)
+                                        <img src="{{ asset('storage/' . $relatedProduct->main_image) }}" 
                                              alt="{{ $relatedProduct->name }}" 
                                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     @else
@@ -434,7 +397,7 @@
                                         {{ $relatedProduct->name }}
                                     </h3>
                                     <p class="text-lg font-bold text-sage-600 mb-2">
-                                        Rp {{ number_format($relatedProduct->price, 0, ',', '.') }}
+                                        {{ $relatedProduct->formatted_price }}
                                     </p>
                                     <div class="flex items-center justify-between text-xs text-gray-500">
                                         <span class="truncate">{{ $relatedProduct->store->name }}</span>
@@ -457,7 +420,6 @@
                 <form action="{{ route('cart.add') }}" method="POST" id="mobileAddToCartForm" class="flex gap-3">
                     @csrf
                     <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    {{-- Input quantity ini akan diperbarui oleh JavaScript agar sesuai dengan input utama --}}
                     <input type="hidden" name="quantity" id="mobileQuantity" value="1"> 
                     
                     <button type="button" id="mobileBuyNowButton"
@@ -488,204 +450,126 @@
         <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg">
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-// Class untuk mengontrol kuantitas produk
-class QuantityController {
-    constructor() {
-        this.quantityInput = document.getElementById('quantity');
-        this.decreaseBtn = document.getElementById('decreaseBtn');
-        this.increaseBtn = document.getElementById('increaseBtn');
-        this.mobileQuantityInput = document.getElementById('mobileQuantity'); 
+document.addEventListener('DOMContentLoaded', function() {
+    // Class untuk mengontrol kuantitas produk
+    class QuantityController {
+        constructor() {
+            this.quantityInput = document.getElementById('quantity');
+            this.decreaseBtn = document.getElementById('decreaseBtn');
+            this.increaseBtn = document.getElementById('increaseBtn');
+            this.mobileQuantityInput = document.getElementById('mobileQuantity'); 
 
-        this.init();
-    }
-    
-    init() {
-        if (!this.quantityInput) {
-            console.error('ERROR: Quantity input (#quantity) not found. QuantityController will not function.');
-            return; 
+            this.init();
         }
         
-        if (this.decreaseBtn) {
-            this.decreaseBtn.addEventListener('click', () => {
-                this.updateQuantity(-1);
-            });
-        } else {
-            console.warn('WARNING: Decrease button (#decreaseBtn) not found.');
-        }
-
-        if (this.increaseBtn) {
-            this.increaseBtn.addEventListener('click', () => {
-                this.updateQuantity(1);
-            });
-        } else {
-            console.warn('WARNING: Increase button (#increaseBtn) not found.');
-        }
-
-        if (this.mobileQuantityInput) {
-            this.mobileQuantityInput.value = this.quantityInput.value;
-        }
-    }
-    
-    updateQuantity(change) {
-        if (!this.quantityInput) {
-            console.error('Error: quantityInput is null in updateQuantity. This should not happen after init check.');
-            return;
-        }
-
-        const currentValue = parseInt(this.quantityInput.value) || 1;
-        const minValue = parseInt(this.quantityInput.getAttribute('min')) || 1;
-        const maxValue = parseInt(this.quantityInput.getAttribute('max')) || 99; 
-        
-        let newValue = currentValue + change;
-        
-        if (newValue < minValue) {
-            newValue = minValue;
-        } else if (newValue > maxValue) {
-            newValue = maxValue;
-        }
-
-        this.quantityInput.value = newValue;
-
-        if (this.mobileQuantityInput) {
-            this.mobileQuantityInput.value = newValue;
-        }
-    }
-}
-
-// Class untuk mengelola galeri gambar produk
-class ProductGallery {
-    static changeMainImage(src, element) {
-        const mainImage = document.getElementById('mainImage');
-        if (mainImage) {
-            mainImage.src = src;
+        init() {
+            if (!this.quantityInput) return; 
+            
+            this.decreaseBtn?.addEventListener('click', () => this.updateQuantity(-1));
+            this.increaseBtn?.addEventListener('click', () => this.updateQuantity(1));
+            
+            if (this.mobileQuantityInput) {
+                this.mobileQuantityInput.value = this.quantityInput.value;
+            }
         }
         
-        document.querySelectorAll('[onclick*="changeMainImage"]').forEach(thumb => {
-            thumb.classList.remove('border-sage-500');
-            thumb.classList.add('border-transparent');
-        });
-        
-        if (element) {
-            element.classList.remove('border-transparent');
-            element.classList.add('border-sage-500');
-        }
-    }
+        updateQuantity(change) {
+            const currentValue = parseInt(this.quantityInput.value, 10);
+            const minValue = parseInt(this.quantityInput.min, 10);
+            const maxValue = parseInt(this.quantityInput.max, 10);
+            
+            let newValue = currentValue + change;
+            
+            if (newValue < minValue) newValue = minValue;
+            if (newValue > maxValue) newValue = maxValue;
 
-    static openModal() {
-        const mainImage = document.getElementById('mainImage');
-        const modal = document.getElementById('imageModal');
-        const modalImage = document.getElementById('modalImage');
-        
-        if (mainImage && mainImage.src && modal && modalImage) {
-            modalImage.src = mainImage.src;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden'; 
-        }
-    }
+            this.quantityInput.value = newValue;
 
-    static closeModal() {
-        const modal = document.getElementById('imageModal');
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.style.overflow = 'auto';
-        }
-    }
-}
-
-// Class untuk tindakan terkait produk lainnya
-class ProductActions {
-    constructor() {
-        this.buyNowButton = document.getElementById('buyNowButton');
-        this.mobileBuyNowButton = document.getElementById('mobileBuyNowButton');
-        this.wishlistButton = document.getElementById('wishlistButton');
-        this.shareButton = document.getElementById('shareButton');
-
-        this.init();
-    }
-
-    init() {
-        if (this.buyNowButton) {
-            this.buyNowButton.addEventListener('click', () => this.buyNow());
-        }
-        if (this.mobileBuyNowButton) {
-            this.mobileBuyNowButton.addEventListener('click', () => this.buyNow());
-        }
-        if (this.wishlistButton) {
-            this.wishlistButton.addEventListener('click', (event) => this.toggleWishlist(event));
-        }
-        if (this.shareButton) {
-            this.shareButton.addEventListener('click', () => this.shareProduct());
-        }
-    }
-
-    buyNow() {
-        const quantityInput = document.getElementById('quantity');
-        const quantity = quantityInput ? quantityInput.value : 1;
-        alert(`Fitur beli sekarang dengan ${quantity} item akan segera tersedia! Ini akan langsung menuju halaman checkout.`);
-    }
-
-    toggleWishlist(event) {
-        const button = event.currentTarget;
-        const svg = button.querySelector('svg');
-        const span = button.querySelector('span');
-        
-        if (svg && span) {
-            if (svg.style.fill === 'red') {
-                svg.style.fill = 'none';
-                span.textContent = 'Wishlist';
-                button.classList.remove('text-red-500');
-                button.classList.add('text-gray-500');
-            } else {
-                svg.style.fill = 'red';
-                span.textContent = 'Tersimpan';
-                button.classList.remove('text-gray-500');
-                button.classList.add('text-red-500');
+            if (this.mobileQuantityInput) {
+                this.mobileQuantityInput.value = newValue;
             }
         }
     }
 
-    shareProduct() {
-        if (navigator.share) {
-            navigator.share({
-                title: '{{ $product->name }}',
-                text: 'Lihat produk ini di MintMarket!',
-                url: window.location.href
-            }).catch(error => console.error('Error sharing:', error));
-        } else {
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('Link produk telah disalin ke clipboard!');
-            }).catch(() => {
-                alert('Gagal menyalin link. Silakan salin manual dari address bar.');
+    // Class untuk mengelola galeri gambar produk
+    window.ProductGallery = {
+        changeMainImage(src, element) {
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) mainImage.src = src;
+            
+            document.querySelectorAll('[onclick*="changeMainImage"]').forEach(thumb => {
+                thumb.classList.remove('border-sage-500');
+                thumb.classList.add('border-transparent');
             });
+            
+            element?.classList.remove('border-transparent');
+            element?.classList.add('border-sage-500');
+        },
+        openModal() {
+            const mainImage = document.getElementById('mainImage');
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            
+            if (mainImage?.src && modal && modalImage) {
+                modalImage.src = mainImage.src;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden'; 
+            }
+        },
+        closeModal() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = 'auto';
+            }
+        }
+    };
+
+    // Class untuk tindakan terkait produk lainnya
+    class ProductActions {
+        constructor() {
+            this.buyNowButton = document.getElementById('buyNowButton');
+            this.mobileBuyNowButton = document.getElementById('mobileBuyNowButton');
+            this.init();
+        }
+
+        init() {
+            this.buyNowButton?.addEventListener('click', () => this.buyNow());
+            this.mobileBuyNowButton?.addEventListener('click', () => this.buyNow());
+        }
+
+        buyNow() {
+            // Ini akan mem-bypass validasi form standar, jadi kita submit form yang sama
+            // tapi kita tambahkan input tersembunyi untuk menandakan ini adalah "Beli Sekarang"
+            const form = document.getElementById('addToCartForm');
+            if (form) {
+                const buyNowInput = document.createElement('input');
+                buyNowInput.type = 'hidden';
+                buyNowInput.name = 'buy_now';
+                buyNowInput.value = '1';
+                form.appendChild(buyNowInput);
+                form.submit();
+            }
         }
     }
-}
 
-// Inisialisasi pada saat DOM sudah siap
-document.addEventListener('DOMContentLoaded', function() {
     new QuantityController();
     new ProductActions();
     
     const imageModal = document.getElementById('imageModal');
-    if (imageModal) {
-        imageModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                ProductGallery.closeModal();
-            }
-        });
-    }
+    imageModal?.addEventListener('click', e => {
+        if (e.target === imageModal) ProductGallery.closeModal();
+    });
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            ProductGallery.closeModal();
-        }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') ProductGallery.closeModal();
     });
 });
 </script>
 @endpush
-@endsection

@@ -35,18 +35,26 @@ class Cart extends Component
             ->get();
 
         $this->cartItems = $carts->map(function ($cart) {
+            // Jika karena satu dan lain hal produk tidak ditemukan, lewati.
+            if (!$cart->product) {
+                return null;
+            }
+
+            // <-- PERUBAHAN LOGIKA UTAMA ADA DI SINI -->
+            $currentPrice = $cart->product->current_price; // Menggunakan accessor dari Model Product
+
             return [
                 'id' => $cart->product->id,
                 'cart_id' => $cart->id,
                 'name' => $cart->product->name,
-                'price' => $cart->product->price,
+                'price' => $currentPrice, // <-- Harga disesuaikan
                 'quantity' => $cart->quantity,
                 'stock' => $cart->product->stock,
                 'image' => $cart->product->main_image,
                 'store_name' => $cart->product->store->name ?? 'Tidak Diketahui',
-                'subtotal' => $cart->product->price * $cart->quantity,
+                'subtotal' => $currentPrice * $cart->quantity, // <-- Subtotal juga disesuaikan
             ];
-        })->keyBy('id')->toArray();
+        })->filter()->keyBy('id')->toArray(); // ->filter() untuk menghapus item null
 
         $this->calculateTotals();
     }
