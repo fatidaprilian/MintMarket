@@ -20,6 +20,8 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
+        'address',
+        'phone',
     ];
 
     protected $hidden = [
@@ -81,6 +83,12 @@ class User extends Authenticatable implements FilamentUser
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
+    }
+
+    // NEW: User transactions for orders (yang benar untuk checkout system)
+    public function userTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class, 'user_id');
     }
 
     // NEW: Cart helper methods

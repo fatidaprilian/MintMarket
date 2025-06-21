@@ -127,7 +127,7 @@
                                 class="flex items-center gap-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg px-4 py-2 transition-all duration-200 font-medium border border-red-200 hover:border-red-300">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-            </svg>
+                            </svg>
                             <span wire:loading.remove wire:target="clearCart">Kosongkan Keranjang</span>
                             <span wire:loading wire:target="clearCart">Mengosongkan...</span>
                         </button>
@@ -157,12 +157,14 @@
                     </div>
                     
                     <div class="space-y-3">
-                        <button class="w-full bg-gradient-to-r from-sage-600 to-sage-700 text-white font-bold py-4 px-6 rounded-lg hover:from-sage-700 hover:to-sage-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
+                        {{-- KODE YANG DIPERBARUI --}}
+                        <a href="{{ route('checkout.index') }}" class="w-full bg-gradient-to-r from-sage-600 to-sage-700 text-white font-bold py-4 px-6 rounded-lg hover:from-sage-700 hover:to-sage-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                             </svg>
                             Lanjut ke Checkout
-                        </button>
+                        </a>
+                        {{-- AKHIR DARI KODE YANG DIPERBARUI --}}
                         
                         <a href="{{ route('products.index') }}" 
                            class="block w-full text-center border-2 border-sage-600 text-sage-600 font-bold py-4 px-6 rounded-lg hover:bg-sage-50 hover:border-sage-700 hover:text-sage-700 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">

@@ -5,98 +5,87 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Transaction extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'product_id',
-        'buyer_id',
-        'total_amount',
-        'status',
+        'user_id',
+        'store_id',
         'transaction_code',
-    ];
-
-    protected $casts = [
-        'total_amount' => 'decimal:2',
+        'total_amount',
+        'shipping_cost',
+        'shipping_address',
+        'status',
+        'payment_method',
     ];
 
     /**
-     * Boot method untuk model.
-     * Akan berjalan otomatis saat model digunakan.
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
+    ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
      */
     protected static function boot()
     {
         parent::boot();
-        // Menggunakan event 'creating' yang berjalan sebelum record disimpan
+        // Membuat transaction_code secara otomatis sebelum menyimpan record baru
         static::creating(function ($model) {
             if (empty($model->transaction_code)) {
-                $model->transaction_code = 'INV/' . date('Ymd') . '/' . strtoupper(Str::random(6));
+                $model->transaction_code = 'TRX-' . time() . '-' . $model->user_id;
             }
         });
     }
 
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class);
-    }
-
-    public function buyer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'buyer_id');
-    }
-
     /**
-     * Get store via product
+     * Mendapatkan semua item detail dari transaksi ini.
      */
-    public function getStoreAttribute()
+    public function items(): HasMany
     {
-        return $this->product->store;
+        return $this->hasMany(TransactionItem::class);
     }
 
     /**
-     * Get seller via product->store
+     * Mendapatkan pengguna (pembeli) yang memiliki transaksi ini.
      */
-    public function getSellerAttribute()
+    public function user(): BelongsTo
     {
-        return $this->product->store->user;
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**
-     * Scopes
+     * Mendapatkan toko yang terkait dengan transaksi ini.
+     */
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Store::class);
+    }
+
+    /**
+     * Scope a query to only include transactions with a given status.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $status
+     * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeStatus($query, $status)
     {
         return $query->where('status', $status);
-    }
-
-    public function scopePending($query)
-    {
-        return $query->where('status', 'pending');
-    }
-
-    public function scopePaid($query)
-    {
-        return $query->where('status', 'paid');
-    }
-
-    /**
-     * Helper methods
-     */
-    public function getFormattedTotalAttribute()
-    {
-        return 'Rp ' . number_format($this->total_amount, 0, ',', '.');
-    }
-
-    public function isPending()
-    {
-        return $this->status === 'pending';
-    }
-
-    public function isPaid()
-    {
-        return $this->status === 'paid';
     }
 }

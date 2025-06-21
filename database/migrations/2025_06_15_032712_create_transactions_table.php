@@ -6,19 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('buyer_id')->constrained('users')->cascadeOnDelete(); // merujuk ke tabel users
-            $table->decimal('total_amount', 10, 2);
-            $table->enum('status', ['pending', 'paid', 'shipped', 'completed', 'cancelled'])->default('pending');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('store_id')->constrained('stores')->onDelete('cascade');
+            $table->string('transaction_code')->unique();
+            $table->decimal('total_amount', 15, 2);
+            $table->decimal('shipping_cost', 15, 2);
+            $table->text('shipping_address');
+            $table->enum('status', ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'])->default('pending');
+            $table->string('payment_method');
+            $table->string('shipping_method')->default('flat_rate');
             $table->timestamps();
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('transactions');
     }
