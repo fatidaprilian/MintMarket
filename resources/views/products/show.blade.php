@@ -540,21 +540,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         init() {
-            this.buyNowButton?.addEventListener('click', () => this.buyNow());
-            this.mobileBuyNowButton?.addEventListener('click', () => this.buyNow());
+            this.buyNowButton?.addEventListener('click', () => this.buyNow('desktop'));
+            this.mobileBuyNowButton?.addEventListener('click', () => this.buyNow('mobile'));
         }
 
-        buyNow() {
-            // Ini akan mem-bypass validasi form standar, jadi kita submit form yang sama
-            // tapi kita tambahkan input tersembunyi untuk menandakan ini adalah "Beli Sekarang"
-            const form = document.getElementById('addToCartForm');
-            if (form) {
-                const buyNowInput = document.createElement('input');
-                buyNowInput.type = 'hidden';
-                buyNowInput.name = 'buy_now';
-                buyNowInput.value = '1';
-                form.appendChild(buyNowInput);
-                form.submit();
+        buyNow(source) {
+            // Tampilkan feedback loading
+            const button = source === 'desktop' ? this.buyNowButton : this.mobileBuyNowButton;
+            this.showLoading(button);
+            
+            // Buat form baru untuk pesan sekarang
+            const buyNowForm = document.createElement('form');
+            buyNowForm.method = 'POST';
+            buyNowForm.action = '/checkout/buy-now'; // Hindari penggunaan route() dalam JavaScript
+            buyNowForm.style.display = 'none';
+            
+            // Tambahkan CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                alert('Tidak dapat melakukan checkout saat ini. Silakan muat ulang halaman.');
+                this.resetLoading(button, source);
+                return;
+            }
+            
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            buyNowForm.appendChild(csrfInput);
+            
+            // Ambil product_id
+            const productIdInput = document.querySelector('input[name="product_id"]');
+            if (!productIdInput) {
+                console.error('Product ID not found');
+                alert('Tidak dapat melakukan checkout saat ini. Silakan muat ulang halaman.');
+                this.resetLoading(button, source);
+                return;
+            }
+            
+            const productId = document.createElement('input');
+            productId.type = 'hidden';
+            productId.name = 'product_id';
+            productId.value = productIdInput.value;
+            buyNowForm.appendChild(productId);
+            
+            // Ambil quantity
+            const quantity = document.createElement('input');
+            quantity.type = 'hidden';
+            quantity.name = 'quantity';
+            quantity.value = document.getElementById('quantity').value;
+            buyNowForm.appendChild(quantity);
+            
+            // Tambahkan form ke document dan submit
+            document.body.appendChild(buyNowForm);
+            
+            // Submit setelah sedikit delay untuk memastikan animasi loading terlihat
+            setTimeout(() => {
+                buyNowForm.submit();
+            }, 300);
+        }
+        
+        showLoading(button) {
+            if (!button) return;
+            
+            button.disabled = true;
+            
+            if (button === this.buyNowButton) {
+                button.innerHTML = `
+                    <div class="flex items-center justify-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-sage-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Memproses...</span>
+                    </div>
+                `;
+            } else {
+                button.innerHTML = `Memproses...`;
+                button.classList.add('opacity-75');
+            }
+        }
+        
+        resetLoading(button, source) {
+            if (!button) return;
+            
+            button.disabled = false;
+            
+            if (source === 'desktop') {
+                button.innerHTML = 'Beli Sekarang';
+            } else {
+                button.innerHTML = 'Beli Sekarang';
+                button.classList.remove('opacity-75');
             }
         }
     }

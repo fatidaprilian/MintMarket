@@ -16,6 +16,13 @@ return new class extends Migration
             if (!Schema::hasColumn('users', 'phone')) {
                 $table->string('phone', 20)->nullable()->after('address');
             }
+            // Add missing 'city' and 'postal_code' columns
+            if (!Schema::hasColumn('users', 'city')) {
+                $table->string('city', 100)->nullable()->after('phone'); // Sesuaikan posisi jika perlu
+            }
+            if (!Schema::hasColumn('users', 'postal_code')) {
+                $table->string('postal_code', 10)->nullable()->after('city');
+            }
         });
     }
 
@@ -27,6 +34,12 @@ return new class extends Migration
             }
             if (Schema::hasColumn('users', 'phone')) {
                 $table->dropColumn('phone');
+            }
+            if (Schema::hasColumn('users', 'city')) {
+                $table->dropColumn('city');
+            }
+            if (Schema::hasColumn('users', 'postal_code')) {
+                $table->dropColumn('postal_code');
             }
         });
     }

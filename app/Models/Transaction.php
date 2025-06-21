@@ -25,6 +25,7 @@ class Transaction extends Model
         'shipping_address',
         'status',
         'payment_method',
+        'shipping_method', // <-- Tambahkan ini
     ];
 
     /**

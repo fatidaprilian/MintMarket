@@ -10,6 +10,7 @@ use App\Http\Controllers\MyStoreController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\DashboardController; // Tambahkan ini
 use Illuminate\Support\Facades\Route;
 
 // Public routes (untuk tamu - bisa akses tanpa login)
@@ -28,9 +29,8 @@ require __DIR__ . '/auth.php';
 // Protected routes (butuh login)
 Route::middleware(['auth', 'verified'])->group(function () {
     // User Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    // UBAH RUTE INI UNTUK MENUNJUK KE DASHBOARDCONTROLLER
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile Management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -52,6 +52,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('checkout')->name('checkout.')->group(function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/process', [CheckoutController::class, 'process'])->name('process');
+        Route::post('/buy-now', [CheckoutController::class, 'buyNow'])->name('buy-now');
+        Route::get('/buy-now/checkout', [CheckoutController::class, 'buyNowCheckout'])->name('buy-now-checkout');
     });
 
     Route::prefix('orders')->name('orders.')->group(function () {

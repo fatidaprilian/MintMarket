@@ -6,18 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            // Menambahkan kolom setelah 'id', harus unik. Bisa null sementara.
-            $table->string('transaction_code')->unique()->nullable()->after('id');
+            // Tambahkan kolom tracking_number, bisa nullable karena belum tentu semua transaksi langsung ada resinya
+            $table->string('tracking_number')->nullable()->after('shipping_method'); // Sesuaikan posisi
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::table('transactions', function (Blueprint $table) {
-            $table->dropColumn('transaction_code');
+            $table->dropColumn('tracking_number');
         });
     }
 };

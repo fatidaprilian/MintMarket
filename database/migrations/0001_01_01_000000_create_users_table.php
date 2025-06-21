@@ -15,11 +15,16 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            // Perubahan di sini: Role disederhanakan
             $table->enum('role', ['admin', 'user'])->default('user');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            // --- Pastikan kolom-kolom ini ada di sini ---
+            $table->text('address')->nullable();
+            $table->string('city', 100)->nullable();
+            $table->string('postal_code', 10)->nullable();
+            $table->string('phone', 20)->nullable();
+            // ------------------------------------------
             $table->timestamps();
         });
     }

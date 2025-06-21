@@ -15,6 +15,11 @@ class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'email',
@@ -22,6 +27,9 @@ class User extends Authenticatable implements FilamentUser
         'role',
         'address',
         'phone',
+        'city',
+        'postal_code',
+        'profile_picture', // <-- Tambahkan ini
     ];
 
     protected $hidden = [
@@ -38,83 +46,66 @@ class User extends Authenticatable implements FilamentUser
     }
 
     // Existing relations
+
+    // Relasi ke Toko (jika user ini adalah pemilik toko)
     public function store(): HasOne
     {
         return $this->hasOne(Store::class);
     }
 
+    // Relasi ke Produk melalui Toko (produk yang dijual user ini)
     public function products(): HasManyThrough
     {
         return $this->hasManyThrough(
             Product::class,
             Store::class,
-            'user_id',
-            'store_id',
-            'id',
-            'id'
+            'user_id', // Foreign key on stores table
+            'store_id', // Foreign key on products table
+            'id', // Local key on users table
+            'id' // Local key on stores table
         );
     }
 
+    // Relasi ke Transaksi (pesanan yang dibuat user ini)
     public function transactions(): HasMany
     {
-        return $this->hasMany(Transaction::class, 'buyer_id');
+        return $this->hasMany(Transaction::class, 'user_id');
     }
 
+    // Alias untuk 'transactions' (jika Anda suka nama 'orders')
     public function orders(): HasMany
     {
         return $this->transactions();
     }
 
-    public function storeOrders(): HasManyThrough
-    {
-        return $this->hasManyThrough(
-            Transaction::class,
-            Product::class,
-            'store_id',
-            'product_id',
-            'id',
-            'id'
-        )->whereHas('product.store', function ($query) {
-            $query->where('user_id', $this->id);
-        });
-    }
-
-    // NEW: Cart relation
+    // Relasi ke Cart (item di keranjang user ini)
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
     }
 
-    // NEW: User transactions for orders (yang benar untuk checkout system)
-    public function userTransactions(): HasMany
-    {
-        return $this->hasMany(Transaction::class, 'user_id');
-    }
+    // Helper methods (Opsional, Anda bisa menghitung ini di controller dengan withCount)
+    // Jika Anda ingin memiliki accessors ini:
+    // public function getOrdersCountAttribute()
+    // {
+    //     return $this->transactions()->count();
+    // }
 
-    // NEW: Cart helper methods
-    public function getCartItemsAttribute()
-    {
-        return $this->carts()->with(['product' => function ($query) {
-            $query->with('store');
-        }])->get();
-    }
+    // public function getCompletedOrdersCountAttribute()
+    // {
+    //     return $this->transactions()->where('status', 'delivered')->count();
+    // }
 
-    public function getCartCountAttribute()
-    {
-        return $this->carts()->count();
-    }
+    // public function getPendingOrdersCountAttribute()
+    // {
+    //     return $this->transactions()->whereIn('status', ['pending', 'paid', 'processing', 'shipped'])->count();
+    // }
 
-    public function getCartTotalAttribute()
-    {
-        return $this->carts()->with('product')->get()->sum(function ($cart) {
-            return $cart->product->price * $cart->quantity;
-        });
-    }
-
-    public function getCartTotalItemsAttribute()
-    {
-        return $this->carts()->sum('quantity');
-    }
+    // public function getWishlistCountAttribute()
+    // {
+    //     // Implementasi untuk menghitung wishlist jika ada
+    //     return 0;
+    // }
 
     // Existing helper methods
     public function isAdmin(): bool

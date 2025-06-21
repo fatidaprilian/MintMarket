@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
             $table->string('condition');
             $table->json('image')->nullable(); // Kolom untuk multi-gambar
-            $table->enum('status', ['tersedia', 'terjual', 'menunggu_verifikasi'])->default('menunggu_verifikasi');
+            $table->enum('status', ['tersedia', 'terjual', 'menunggu_verifikasi', 'habis'])->default('menunggu_verifikasi');
             $table->timestamps();
         });
     }
