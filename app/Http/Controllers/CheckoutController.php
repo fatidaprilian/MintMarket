@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Product;
+use App\Models\Store; // Pastikan model Store di-import
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log; // Add this line for logging
+use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
@@ -23,7 +24,7 @@ class CheckoutController extends Controller
 
         // Cek apakah ini adalah pembelian langsung
         $isBuyNow = session('buy_now', false);
-        Log::info('CheckoutController@index: isBuyNow = ' . ($isBuyNow ? 'true' : 'false')); // Log
+        Log::info('CheckoutController@index: isBuyNow = ' . ($isBuyNow ? 'true' : 'false'));
 
         if ($isBuyNow) {
             // Ambil item buy now dari keranjang
@@ -31,7 +32,7 @@ class CheckoutController extends Controller
                 ->where('is_buy_now', true)
                 ->with('product.store')
                 ->get();
-            Log::info('CheckoutController@index: Fetched ' . $cartItems->count() . ' buy now cart items.'); // Log
+            Log::info('CheckoutController@index: Fetched ' . $cartItems->count() . ' buy now cart items.');
         } else {
             // Ambil item normal dari keranjang
             $cartItems = Cart::where('user_id', $user->id)
@@ -41,7 +42,7 @@ class CheckoutController extends Controller
                 })
                 ->with('product.store')
                 ->get();
-            Log::info('CheckoutController@index: Fetched ' . $cartItems->count() . ' regular cart items.'); // Log
+            Log::info('CheckoutController@index: Fetched ' . $cartItems->count() . ' regular cart items.');
         }
 
         // Validasi keranjang
@@ -50,7 +51,7 @@ class CheckoutController extends Controller
             $product = $cart->product;
 
             if (!$product || $product->status !== 'tersedia') {
-                Log::warning('CheckoutController@index: Product ' . ($product ? $product->name : 'Unknown') . ' not available or found. Deleting cart item: ' . $cart->id); // Log
+                Log::warning('CheckoutController@index: Product ' . ($product ? $product->name : 'Unknown') . ' not available or found. Deleting cart item: ' . $cart->id);
                 $cart->delete();
                 $cartItems->forget($key);
                 $hasChanges = true;
@@ -58,32 +59,31 @@ class CheckoutController extends Controller
             }
 
             if ($cart->quantity > $product->stock) {
-                Log::warning('CheckoutController@index: Cart quantity (' . $cart->quantity . ') for product ' . $product->name . ' exceeds stock (' . $product->stock . ').'); // Log
+                Log::warning('CheckoutController@index: Cart quantity (' . $cart->quantity . ') for product ' . $product->name . ' exceeds stock (' . $product->stock . ').');
                 if ($product->stock > 0) {
                     $cart->update(['quantity' => $product->stock]);
                     $cart->quantity = $product->stock;
-                    Log::info('CheckoutController@index: Cart quantity updated to product stock.'); // Log
+                    Log::info('CheckoutController@index: Cart quantity updated to product stock.');
                 } else {
                     $cart->delete();
                     $cartItems->forget($key);
-                    Log::info('CheckoutController@index: Product stock is zero, deleting cart item.'); // Log
+                    Log::info('CheckoutController@index: Product stock is zero, deleting cart item.');
                 }
                 $hasChanges = true;
             }
         }
 
         if ($hasChanges) {
-            Log::info('CheckoutController@index: Cart changes detected, redirecting to cart.index.'); // Log
+            Log::info('CheckoutController@index: Cart changes detected, redirecting to cart.index.');
             return redirect()->route('cart.index')->with('info', 'Keranjang Anda telah disesuaikan dengan stok dan ketersediaan produk terbaru.');
         }
 
         if ($cartItems->isEmpty()) {
-            // Reset session buy_now jika cart kosong
             if ($isBuyNow) {
                 session()->forget('buy_now');
-                Log::info('CheckoutController@index: Buy now session cleared as cart is empty.'); // Log
+                Log::info('CheckoutController@index: Buy now session cleared as cart is empty.');
             }
-            Log::warning('CheckoutController@index: Cart is empty, redirecting to cart.index.'); // Log
+            Log::warning('CheckoutController@index: Cart is empty, redirecting to cart.index.');
             return redirect()->route('cart.index')->with('error', 'Keranjang Anda kosong. Silakan tambahkan produk terlebih dahulu.');
         }
 
@@ -107,7 +107,7 @@ class CheckoutController extends Controller
         $totalShippingCost = count($groupedItems) * $shippingCostPerStore;
         $grandTotal = $totalSubtotal + $totalShippingCost;
 
-        Log::info('CheckoutController@index: Displaying checkout page with ' . count($groupedItems) . ' stores and grand total: ' . $grandTotal); // Log
+        Log::info('CheckoutController@index: Displaying checkout page with ' . count($groupedItems) . ' stores and grand total: ' . $grandTotal);
         return view('checkout.index', [
             'cartItems' => $cartItems,
             'groupedItems' => $groupedItems,
@@ -134,45 +134,41 @@ class CheckoutController extends Controller
         $quantity = $request->quantity;
         $user = Auth::user();
 
-        // Validasi produk
         $product = Product::with('store')->findOrFail($productId);
 
         if ($product->status !== 'tersedia' || $product->stock < $quantity) {
-            Log::warning('CheckoutController@buyNow: Product ' . $product->name . ' not available or stock insufficient. Status: ' . $product->status . ', Stock: ' . $product->stock . ', Requested: ' . $quantity); // Log
+            Log::warning('CheckoutController@buyNow: Product ' . $product->name . ' not available or stock insufficient. Status: ' . $product->status . ', Stock: ' . $product->stock . ', Requested: ' . $quantity);
             return redirect()->route('products.show', $product->slug)->with('error', 'Produk tidak tersedia atau stok tidak mencukupi.');
         }
 
         try {
             DB::beginTransaction();
-            Log::info('CheckoutController@buyNow: DB transaction started for buy now.'); // Log
+            Log::info('CheckoutController@buyNow: DB transaction started for buy now.');
 
-            // Hapus item buy_now yang sebelumnya ada
-            $deletedCount = Cart::where('user_id', $user->id)
+            Cart::where('user_id', $user->id)
                 ->where('is_buy_now', true)
                 ->delete();
-            Log::info('CheckoutController@buyNow: Deleted ' . $deletedCount . ' previous buy now cart items for user ' . $user->id); // Log
+            Log::info('CheckoutController@buyNow: Deleted previous buy now cart items for user ' . $user->id);
 
-            // Buat item sementara di keranjang dengan flag buy_now
             $cartItem = Cart::create([
                 'user_id' => $user->id,
                 'product_id' => $productId,
                 'quantity' => $quantity,
                 'is_buy_now' => true
             ]);
-            Log::info('CheckoutController@buyNow: Created new buy now cart item: ' . $cartItem->id); // Log
+            Log::info('CheckoutController@buyNow: Created new buy now cart item: ' . $cartItem->id);
 
             DB::commit();
-            Log::info('CheckoutController@buyNow: DB transaction committed for buy now.'); // Log
+            Log::info('CheckoutController@buyNow: DB transaction committed for buy now.');
 
-            // Set session buy_now
             session(['buy_now' => true]);
-            Log::info('CheckoutController@buyNow: Session "buy_now" set to true.'); // Log
+            Log::info('CheckoutController@buyNow: Session "buy_now" set to true.');
 
             return redirect()->route('checkout.index');
         } catch (\Exception $e) {
             DB::rollback();
-            Log::error('CheckoutController@buyNow: Error processing buy now: ' . $e->getMessage()); // Log
-            Log::error('CheckoutController@buyNow: Stack trace: ' . $e->getTraceAsString()); // Log
+            Log::error('CheckoutController@buyNow: Error processing buy now: ' . $e->getMessage());
+            Log::error('CheckoutController@buyNow: Stack trace: ' . $e->getTraceAsString());
             return redirect()->route('products.show', $product->slug)
                 ->with('error', 'Terjadi kesalahan saat memproses pesanan: ' . $e->getMessage());
         }
@@ -183,7 +179,6 @@ class CheckoutController extends Controller
      */
     public function process(Request $request)
     {
-        // Validasi input dengan pesan error yang lebih jelas
         $validator = \Validator::make($request->all(), [
             'shipping_address' => 'required|string|max:1000',
             'shipping_method' => 'required|string',
@@ -202,7 +197,7 @@ class CheckoutController extends Controller
         ]);
 
         if ($validator->fails()) {
-            Log::warning('CheckoutController@process: Validation failed: ' . $validator->errors()->toJson()); // Log validation errors
+            Log::warning('CheckoutController@process: Validation failed: ' . $validator->errors()->toJson());
             return back()->withErrors($validator)->withInput()->with('error', 'Silakan lengkapi semua field yang diperlukan.');
         }
 
@@ -210,11 +205,8 @@ class CheckoutController extends Controller
 
         try {
             DB::beginTransaction();
-
-            // Log untuk debugging
             Log::info('CheckoutController@process: Starting checkout process for user: ' . $user->id);
 
-            // Simpan alamat ke profil user jika diminta
             if ($request->has('save_address') && $request->save_address) {
                 $user->update([
                     'address' => $request->shipping_address,
@@ -225,19 +217,15 @@ class CheckoutController extends Controller
                 Log::info('CheckoutController@process: User address updated for user: ' . $user->id);
             }
 
-            // Siapkan alamat lengkap untuk pengiriman
             $fullAddress = $request->shipping_address . "\nKota: " . $request->city . "\nKode Pos: " . $request->postal_code . "\nTelepon: " . $request->phone;
 
-            // Cek apakah ini pembelian langsung dari sesi
             $isBuyNow = session('buy_now', false);
             Log::info('CheckoutController@process: Is buy now: ' . ($isBuyNow ? 'true' : 'false') . ' for user: ' . $user->id);
 
             if ($isBuyNow) {
                 $cartItems = Cart::where('user_id', $user->id)
                     ->where('is_buy_now', true)
-                    ->with(['product' => function ($query) {
-                        $query->with('store');
-                    }])
+                    ->with('product.store')
                     ->get();
             } else {
                 $cartItems = Cart::where('user_id', $user->id)
@@ -245,9 +233,7 @@ class CheckoutController extends Controller
                         $query->where('is_buy_now', false)
                             ->orWhereNull('is_buy_now');
                     })
-                    ->with(['product' => function ($query) {
-                        $query->with('store');
-                    }])
+                    ->with('product.store')
                     ->get();
             }
 
@@ -262,7 +248,6 @@ class CheckoutController extends Controller
                 return redirect()->route('cart.index')->with('error', 'Checkout gagal karena keranjang Anda kosong.');
             }
 
-            // Validasi stok sekali lagi sebelum proses
             foreach ($cartItems as $item) {
                 if (!$item->product || $item->product->status !== 'tersedia') {
                     DB::rollBack();
@@ -270,7 +255,6 @@ class CheckoutController extends Controller
                     Log::error('CheckoutController@process: Product "' . $productName . '" not available for user: ' . $user->id . '. Rolling back.');
                     return back()->with('error', 'Produk "' . ($item->product ? $item->product->name : 'Unknown') . '" tidak tersedia.');
                 }
-
                 if ($item->quantity > $item->product->stock) {
                     DB::rollBack();
                     Log::error('CheckoutController@process: Stock insufficient for product "' . $item->product->name . '". Requested: ' . $item->quantity . ', Available: ' . $item->product->stock . '. Rolling back.');
@@ -278,52 +262,44 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Grup items berdasarkan toko
             $groupedItems = $cartItems->groupBy('product.store_id');
             $createdTransactions = [];
-
             Log::info('CheckoutController@process: Processing ' . count($groupedItems) . ' stores for user: ' . $user->id);
 
             foreach ($groupedItems as $storeId => $storeItems) {
-                // Pastikan store ada
-                $store = $storeItems->first()->product->store;
+                $store = Store::find($storeId);
                 if (!$store) {
                     DB::rollBack();
-                    Log::error('CheckoutController@process: Store not found for product in grouped items. Rolling back.');
+                    Log::error('CheckoutController@process: Store not found for ID: ' . $storeId . '. Rolling back.');
                     return back()->with('error', 'Toko tidak ditemukan untuk salah satu produk.');
                 }
 
-                // Hitung subtotal untuk toko ini
-                $storeSubtotal = $storeItems->sum(function ($item) {
-                    return $item->product->current_price * $item->quantity;
-                });
-
-                $shippingCost = 15000; // Flat rate per toko
+                $storeSubtotal = $storeItems->sum(fn($item) => $item->product->current_price * $item->quantity);
+                $shippingCost = 15000;
                 $totalAmount = $storeSubtotal + $shippingCost;
 
-                // Generate kode transaksi unik
                 do {
                     $transactionCode = 'TRX-' . strtoupper(Str::random(8));
                 } while (Transaction::where('transaction_code', $transactionCode)->exists());
 
-                Log::info('CheckoutController@process: Creating transaction for store: ' . $storeId . ' with code: ' . $transactionCode . ' for user: ' . $user->id);
+                // == REVISI DI SINI ==
+                // Tentukan status awal berdasarkan pengaturan toko
+                $initialStatus = $store->auto_process_orders ? 'processing' : 'pending';
+                Log::info('CheckoutController@process: Store ' . $store->name . ' auto_process_orders is ' . ($store->auto_process_orders ? 'true' : 'false') . '. Initial status set to: ' . $initialStatus);
 
-                // Buat transaksi untuk setiap toko
                 $transaction = Transaction::create([
                     'user_id' => $user->id,
                     'store_id' => $storeId,
                     'total_amount' => $totalAmount,
                     'shipping_cost' => $shippingCost,
                     'shipping_address' => $fullAddress,
-                    'status' => 'pending',
+                    'status' => $initialStatus, // Menggunakan status yang sudah ditentukan
                     'payment_method' => $request->payment_method,
                     'shipping_method' => $request->shipping_method,
                     'transaction_code' => $transactionCode,
                 ]);
-
                 Log::info('CheckoutController@process: Transaction created with ID: ' . $transaction->id . ' for user: ' . $user->id);
 
-                // Tambahkan items ke transaksi
                 foreach ($storeItems as $item) {
                     TransactionItem::create([
                         'transaction_id' => $transaction->id,
@@ -332,47 +308,28 @@ class CheckoutController extends Controller
                         'price' => $item->product->current_price,
                     ]);
 
-                    // Kurangi stok produk
                     $product = $item->product;
                     $newStock = $product->stock - $item->quantity;
                     $product->update(['stock' => $newStock]);
 
-                    // Update status produk jika stok habis
                     if ($newStock <= 0) {
                         $product->update(['status' => 'habis']);
                     }
-
                     Log::info('CheckoutController@process: Product stock updated: ' . $product->name . ' - New stock: ' . $newStock . ' for user: ' . $user->id);
                 }
-
                 $createdTransactions[] = $transaction;
             }
 
-            // Kosongkan keranjang yang diproses
-            if ($isBuyNow) {
-                $deletedCartItemsCount = Cart::where('user_id', $user->id)
-                    ->where('is_buy_now', true)
-                    ->delete();
-                Log::info('CheckoutController@process: Deleted ' . $deletedCartItemsCount . ' buy now cart items for user: ' . $user->id);
-            } else {
-                $deletedCartItemsCount = Cart::where('user_id', $user->id)
-                    ->where(function ($query) {
-                        $query->where('is_buy_now', false)
-                            ->orWhereNull('is_buy_now');
-                    })
-                    ->delete();
-                Log::info('CheckoutController@process: Deleted ' . $deletedCartItemsCount . ' regular cart items for user: ' . $user->id);
-            }
+            $cartItemIds = $cartItems->pluck('id');
+            Cart::whereIn('id', $cartItemIds)->delete();
+            Log::info('CheckoutController@process: Deleted ' . count($cartItemIds) . ' cart items for user: ' . $user->id);
 
-            // Hapus session buy_now
             session()->forget('buy_now');
             Log::info('CheckoutController@process: Session "buy_now" cleared for user: ' . $user->id);
 
             DB::commit();
-
             Log::info('CheckoutController@process: Checkout completed successfully for user: ' . $user->id . '. Transactions created: ' . count($createdTransactions));
 
-            // Redirect berdasarkan jumlah transaksi
             if (count($createdTransactions) === 1) {
                 return redirect()->route('orders.show', $createdTransactions[0]->id)
                     ->with('success', 'Pesanan berhasil dibuat! Silakan lakukan pembayaran untuk melanjutkan proses.');
@@ -384,7 +341,6 @@ class CheckoutController extends Controller
             DB::rollBack();
             Log::error('CheckoutController@process: Checkout error for user ' . $user->id . ': ' . $e->getMessage());
             Log::error('CheckoutController@process: Stack trace: ' . $e->getTraceAsString());
-
             return back()->withInput()->with('error', 'Terjadi kesalahan saat memproses pesanan. Silakan coba lagi. Error: ' . $e->getMessage());
         }
     }

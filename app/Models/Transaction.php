@@ -25,7 +25,8 @@ class Transaction extends Model
         'shipping_address',
         'status',
         'payment_method',
-        'shipping_method', // <-- Tambahkan ini
+        'shipping_method',
+        'tracking_number',
     ];
 
     /**
@@ -76,6 +77,39 @@ class Transaction extends Model
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
+    }
+
+    // =========================================================================
+    // ACCESSORS
+    // =========================================================================
+
+    /**
+     * Accessor untuk mendapatkan badge status (class & text).
+     *
+     * @return array
+     */
+    public function getStatusBadgeAttribute(): array
+    {
+        $statusMap = [
+            'pending'    => ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Menunggu Pembayaran'],
+            'paid'       => ['class' => 'bg-cyan-100 text-cyan-800',   'text' => 'Telah Dibayar'],
+            'processing' => ['class' => 'bg-blue-100 text-blue-800',   'text' => 'Diproses'],
+            'shipped'    => ['class' => 'bg-purple-100 text-purple-800', 'text' => 'Dikirim'],
+            'completed'  => ['class' => 'bg-green-100 text-green-800',  'text' => 'Selesai'],
+            'cancelled'  => ['class' => 'bg-red-100 text-red-800',    'text' => 'Dibatalkan'],
+        ];
+
+        return $statusMap[$this->status] ?? ['class' => 'bg-gray-100 text-gray-800', 'text' => ucfirst($this->status)];
+    }
+
+    /**
+     * Accessor untuk format total harga.
+     *
+     * @return string
+     */
+    public function getFormattedTotalAmountAttribute(): string
+    {
+        return 'Rp ' . number_format($this->total_amount, 0, ',', '.');
     }
 
     /**

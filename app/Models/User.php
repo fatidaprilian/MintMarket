@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage; // <-- Tambahkan ini
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -28,15 +29,26 @@ class User extends Authenticatable implements FilamentUser
         'address',
         'phone',
         'city',
+        'province', // <-- Pastikan kolom ini ada di migrasi Anda
         'postal_code',
-        'profile_picture', // <-- Tambahkan ini
+        'profile_picture',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
     protected function casts(): array
     {
         return [
@@ -45,15 +57,51 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
-    // Existing relations
+    // =========================================================================
+    // ACCESSORS (BARU)
+    // =========================================================================
 
-    // Relasi ke Toko (jika user ini adalah pemilik toko)
+    /**
+     * Accessor untuk mendapatkan URL gambar profil.
+     * Mengembalikan URL ke gambar default jika tidak ada gambar profil.
+     */
+    public function getProfilePictureUrlAttribute(): string
+    {
+        if ($this->profile_picture && Storage::disk('public')->exists($this->profile_picture)) {
+            return Storage::disk('public')->url($this->profile_picture);
+        }
+
+        // Mengembalikan gambar default dari ui-avatars.com
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=E8E8E8&color=757575';
+    }
+
+    /**
+     * Accessor untuk mendapatkan alamat lengkap user.
+     */
+    public function getFullAddressAttribute(): string
+    {
+        // Menggabungkan semua bagian alamat yang ada
+        $parts = [$this->address, $this->city, $this->province, $this->postal_code];
+        // array_filter akan menghapus bagian yang null atau kosong sebelum digabung
+        return implode(', ', array_filter($parts));
+    }
+
+
+    // =========================================================================
+    // RELATIONS
+    // =========================================================================
+
+    /**
+     * Relasi ke Toko (jika user ini adalah pemilik toko)
+     */
     public function store(): HasOne
     {
         return $this->hasOne(Store::class);
     }
 
-    // Relasi ke Produk melalui Toko (produk yang dijual user ini)
+    /**
+     * Relasi ke Produk melalui Toko (produk yang dijual user ini)
+     */
     public function products(): HasManyThrough
     {
         return $this->hasManyThrough(
@@ -66,48 +114,34 @@ class User extends Authenticatable implements FilamentUser
         );
     }
 
-    // Relasi ke Transaksi (pesanan yang dibuat user ini)
+    /**
+     * Relasi ke Transaksi (pesanan yang dibuat user ini)
+     */
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class, 'user_id');
     }
 
-    // Alias untuk 'transactions' (jika Anda suka nama 'orders')
+    /**
+     * Alias untuk 'transactions' (jika Anda suka nama 'orders')
+     */
     public function orders(): HasMany
     {
         return $this->transactions();
     }
 
-    // Relasi ke Cart (item di keranjang user ini)
+    /**
+     * Relasi ke Cart (item di keranjang user ini)
+     */
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
     }
 
-    // Helper methods (Opsional, Anda bisa menghitung ini di controller dengan withCount)
-    // Jika Anda ingin memiliki accessors ini:
-    // public function getOrdersCountAttribute()
-    // {
-    //     return $this->transactions()->count();
-    // }
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
 
-    // public function getCompletedOrdersCountAttribute()
-    // {
-    //     return $this->transactions()->where('status', 'delivered')->count();
-    // }
-
-    // public function getPendingOrdersCountAttribute()
-    // {
-    //     return $this->transactions()->whereIn('status', ['pending', 'paid', 'processing', 'shipped'])->count();
-    // }
-
-    // public function getWishlistCountAttribute()
-    // {
-    //     // Implementasi untuk menghitung wishlist jika ada
-    //     return 0;
-    // }
-
-    // Existing helper methods
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

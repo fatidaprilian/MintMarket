@@ -88,6 +88,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{transaction}', [MyStoreController::class, 'showTransaction'])->name('show');
             Route::patch('/{transaction}/status', [MyStoreController::class, 'updateTransactionStatus'])->name('updateStatus');
         });
+        Route::patch('/toggle-auto-process', [MyStoreController::class, 'toggleAutoProcess'])->name('toggleAutoProcess');
 
         // Store Analytics
         Route::get('/analytics', [MyStoreController::class, 'analytics'])->name('analytics');

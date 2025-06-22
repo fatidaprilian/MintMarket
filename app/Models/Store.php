@@ -37,7 +37,8 @@ class Store extends Model
         'tiktok',
         'terms_and_conditions',
         'rating',
-        'last_active_at'
+        'last_active_at',
+        'auto_process_orders', // <-- Ditambahkan
     ];
 
     protected $casts = [
@@ -45,6 +46,7 @@ class Store extends Model
         'is_verified' => 'boolean',
         'operating_hours' => 'array',
         'last_active_at' => 'datetime',
+        'auto_process_orders' => 'boolean', // <-- Ditambahkan
     ];
 
     protected static function boot()
@@ -102,22 +104,6 @@ class Store extends Model
     }
 
     /**
-     * Get all orders for the store.
-     */
-    public function orders(): HasMany
-    {
-        return $this->hasMany(Order::class);
-    }
-
-    /**
-     * Get all order items through orders.
-     */
-    public function orderItems(): HasMany
-    {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    /**
      * Get all reviews for the store through products.
      */
     public function reviews()
@@ -132,7 +118,10 @@ class Store extends Model
      */
     public function getLogoUrlAttribute(): string
     {
-        return $this->logo ? Storage::url($this->logo) : asset('images/default-store-logo.png');
+        if ($this->logo && Storage::disk('public')->exists($this->logo)) {
+            return Storage::url($this->logo);
+        }
+        return 'https://placehold.co/400x400/E8E8E8/757575?text=Logo';
     }
 
     /**
@@ -140,7 +129,10 @@ class Store extends Model
      */
     public function getBannerUrlAttribute(): string
     {
-        return $this->banner ? Storage::url($this->banner) : asset('images/default-store-banner.jpg');
+         if ($this->banner && Storage::disk('public')->exists($this->banner)) {
+            return Storage::url($this->banner);
+        }
+        return 'https://placehold.co/1200x400/E8E8E8/757575?text=Banner';
     }
 
     /**
@@ -160,7 +152,7 @@ class Store extends Model
     public function isComplete(): bool
     {
         return !empty($this->name) && !empty($this->description) &&
-            !empty($this->address) && !empty($this->phone) && !empty($this->postal_code);
+               !empty($this->address) && !empty($this->phone) && !empty($this->postal_code);
     }
 
     /**
@@ -168,37 +160,20 @@ class Store extends Model
      */
     public function getCompletionPercentage(): int
     {
-        $requiredFields = ['name', 'description', 'address', 'phone', 'postal_code'];
-        $optionalFields = ['logo', 'banner', 'whatsapp', 'email', 'instagram'];
-
-        $completed = 0;
-        $total = count($requiredFields) + count($optionalFields);
-
-        foreach ($requiredFields as $field) {
-            if (!empty($this->$field)) $completed++;
-        }
-
-        foreach ($optionalFields as $field) {
-            if (!empty($this->$field)) $completed++;
-        }
-
-        $additionalOptionalFields = ['is_verified', 'store_type', 'operating_hours', 'facebook', 'tiktok', 'terms_and_conditions', 'rating', 'last_active_at'];
-        foreach ($additionalOptionalFields as $field) {
-            if ($field === 'operating_hours') {
-                if (!empty($this->$field) && is_array($this->$field)) {
-                    $completed++;
-                }
-            } elseif ($field === 'last_active_at') {
-                if ($this->$field !== null) {
-                    $completed++;
-                }
-            } else {
-                if (!empty($this->$field)) $completed++;
+        $fields = [
+            'name', 'description', 'address', 'phone', 'postal_code',
+            'logo', 'banner', 'whatsapp', 'email', 'instagram', 'facebook',
+            'tiktok', 'operating_hours', 'terms_and_conditions'
+        ];
+        
+        $completedCount = 0;
+        foreach ($fields as $field) {
+            if (!empty($this->{$field})) {
+                $completedCount++;
             }
-            $total++;
         }
-
-        return ($total > 0) ? round(($completed / $total) * 100) : 0;
+        
+        return count($fields) > 0 ? round(($completedCount / count($fields)) * 100) : 0;
     }
 
     /**
@@ -216,7 +191,7 @@ class Store extends Model
      */
     public function getTotalOrders(): int
     {
-        return $this->orders()->count();
+        return $this->transactions()->count();
     }
 
     /**
@@ -224,7 +199,7 @@ class Store extends Model
      */
     public function getCompletedOrders(): int
     {
-        return $this->orders()
+        return $this->transactions()
             ->where('status', 'completed')
             ->count();
     }
@@ -234,7 +209,7 @@ class Store extends Model
      */
     public function getPendingOrders(): int
     {
-        return $this->orders()
+        return $this->transactions()
             ->whereIn('status', ['pending', 'processing'])
             ->count();
     }
