@@ -164,15 +164,11 @@ class User extends Authenticatable implements FilamentUser
 
     public function getRoleDisplayAttribute(): string
     {
-        if ($this->isAdmin()) {
+        if ($this->role === 'admin') {
             return 'Administrator';
         }
 
-        if ($this->isSeller()) {
-            return 'Penjual';
-        }
-
-        return 'Pembeli';
+        return 'Pengguna';
     }
 
     public function canAccessPanel(Panel $panel): bool

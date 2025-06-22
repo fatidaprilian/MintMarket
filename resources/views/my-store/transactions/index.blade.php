@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('hide_search_bar', true)
 
 @section('title', 'Kelola Transaksi - ' . $store->name)
 

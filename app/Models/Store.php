@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,11 @@ class Store extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'name',
@@ -38,17 +44,27 @@ class Store extends Model
         'terms_and_conditions',
         'rating',
         'last_active_at',
-        'auto_process_orders', // <-- Ditambahkan
+        'auto_process_orders', // Ditambahkan
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'is_active' => 'boolean',
         'is_verified' => 'boolean',
         'operating_hours' => 'array',
         'last_active_at' => 'datetime',
-        'auto_process_orders' => 'boolean', // <-- Ditambahkan
+        'auto_process_orders' => 'boolean', // Ditambahkan
     ];
 
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
     protected static function boot()
     {
         parent::boot();
@@ -104,11 +120,20 @@ class Store extends Model
     }
 
     /**
+     * Get the wallet associated with the store.
+     */
+    public function wallet(): HasOne
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    /**
      * Get all reviews for the store through products.
      */
     public function reviews()
     {
-        return $this->hasManyThrough(Review::class, Product::class);
+        // Pastikan model Review ada sebelum menggunakan relasi ini
+        // return $this->hasManyThrough(Review::class, Product::class);
     }
 
     // ==================== ACCESSORS ====================
@@ -129,7 +154,7 @@ class Store extends Model
      */
     public function getBannerUrlAttribute(): string
     {
-         if ($this->banner && Storage::disk('public')->exists($this->banner)) {
+        if ($this->banner && Storage::disk('public')->exists($this->banner)) {
             return Storage::url($this->banner);
         }
         return 'https://placehold.co/1200x400/E8E8E8/757575?text=Banner';
@@ -152,7 +177,7 @@ class Store extends Model
     public function isComplete(): bool
     {
         return !empty($this->name) && !empty($this->description) &&
-               !empty($this->address) && !empty($this->phone) && !empty($this->postal_code);
+            !empty($this->address) && !empty($this->phone) && !empty($this->postal_code);
     }
 
     /**
@@ -161,18 +186,29 @@ class Store extends Model
     public function getCompletionPercentage(): int
     {
         $fields = [
-            'name', 'description', 'address', 'phone', 'postal_code',
-            'logo', 'banner', 'whatsapp', 'email', 'instagram', 'facebook',
-            'tiktok', 'operating_hours', 'terms_and_conditions'
+            'name',
+            'description',
+            'address',
+            'phone',
+            'postal_code',
+            'logo',
+            'banner',
+            'whatsapp',
+            'email',
+            'instagram',
+            'facebook',
+            'tiktok',
+            'operating_hours',
+            'terms_and_conditions'
         ];
-        
+
         $completedCount = 0;
         foreach ($fields as $field) {
             if (!empty($this->{$field})) {
                 $completedCount++;
             }
         }
-        
+
         return count($fields) > 0 ? round(($completedCount / count($fields)) * 100) : 0;
     }
 
@@ -210,7 +246,7 @@ class Store extends Model
     public function getPendingOrders(): int
     {
         return $this->transactions()
-            ->whereIn('status', ['pending', 'processing'])
+            ->whereIn('status', ['pending', 'processing', 'paid'])
             ->count();
     }
 
@@ -219,7 +255,8 @@ class Store extends Model
      */
     public function getAverageRating(): float
     {
-        return $this->reviews()->avg('rating') ?? 0;
+        // return $this->reviews()->avg('rating') ?? 0;
+        return 0; // Placeholder
     }
 
     /**
@@ -227,7 +264,8 @@ class Store extends Model
      */
     public function getTotalReviews(): int
     {
-        return $this->reviews()->count();
+        // return $this->reviews()->count();
+        return 0; // Placeholder
     }
 
     /**

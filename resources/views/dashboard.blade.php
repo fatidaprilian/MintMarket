@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+@section('hide_search_bar', true)
 @section('title', 'Dashboard')
 
 @section('content')

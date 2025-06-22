@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('hide_search_bar', true)
 
 @section('title', ($isCreating ? 'Buka Toko Baru' : 'Edit Profil Toko') . ' - MintMarket')
 

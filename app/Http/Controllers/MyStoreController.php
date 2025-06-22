@@ -8,6 +8,7 @@ use App\Models\Transaction;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -161,7 +162,6 @@ class MyStoreController extends Controller
             return redirect()->route('store.create')->with('error', 'Anda belum memiliki toko.');
         }
 
-        // Eager load relasi 'category' untuk menghindari N+1 query problem
         $products = $store->products()->with('category')->latest()->paginate(10);
 
         return view('my-store.products.index', compact('store', 'products'));
@@ -367,12 +367,56 @@ class MyStoreController extends Controller
 
     public function analytics()
     {
-        // ...
+        $store = Auth::user()->store;
+        if (!$store) {
+            return redirect()->route('store.create')->with('error', 'Anda belum memiliki toko.');
+        }
+
+        $completedTransactions = $store->transactions()->where('status', 'completed');
+
+        $totalRevenue = $completedTransactions->clone()->sum('total_amount');
+        $totalOrders = $completedTransactions->clone()->count();
+        $averageOrderValue = ($totalOrders > 0) ? $totalRevenue / $totalOrders : 0;
+
+        $salesData = $store->transactions()
+            ->where('status', 'completed')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('SUM(total_amount) as total')
+            )
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get();
+
+        $chartLabels = $salesData->pluck('date')->map(fn($date) => Carbon::parse($date)->format('d M'));
+        $chartData = $salesData->pluck('total');
+
+        // REVISI: Query Produk Terlaris diperbaiki
+        $topProducts = Product::where('products.store_id', $store->id)
+            ->join('transaction_items', 'products.id', '=', 'transaction_items.product_id')
+            ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
+            ->where('transactions.status', 'completed')
+            ->select('products.*', DB::raw('SUM(transaction_items.quantity) as items_sold'))
+            ->groupBy('products.id')
+            ->orderByDesc('items_sold')
+            ->take(5)
+            ->get();
+
+        return view('my-store.analytics', compact(
+            'store',
+            'totalRevenue',
+            'totalOrders',
+            'averageOrderValue',
+            'chartLabels',
+            'chartData',
+            'topProducts'
+        ));
     }
 
     public function promotions()
     {
-        // ...
+        // ... Logic for promotions page
     }
 
     // =========================================================================

@@ -12,6 +12,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\MyStore\WalletController; // <-- TAMBAHKAN INI
+use App\Http\Controllers\MyStore\TransactionController; // <-- TAMBAHKAN INI
 // use App\Livewire\StoreProfile; // Hapus atau komentari import ini
 
 // Public routes (untuk tamu - bisa akses tanpa login)
@@ -95,5 +97,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Store Promotions (Added this route)
         Route::get('/promotions', [MyStoreController::class, 'promotions'])->name('promotions');
+
+        Route::prefix('wallet')->name('wallet.')->group(function () {
+            Route::get('/', [WalletController::class, 'index'])->name('index');
+            Route::post('/withdraw', [WalletController::class, 'storeWithdrawal'])->name('withdraw');
+        });
     });
 });
