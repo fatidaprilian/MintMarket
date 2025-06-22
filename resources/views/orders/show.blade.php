@@ -84,34 +84,27 @@
                 {{-- RINGKASAN STATUS PESANAN (Progress Bar) --}}
                 <h3 class="font-bold text-sage-800 text-lg mb-4">Status Pesanan Anda</h3>
                 @php
-                    // Pastikan urutan status sesuai dengan alur progres
-                    $statuses = ['pending', 'paid', 'processing', 'shipped', 'delivered'];
+                    $statuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'completed'];
                     $currentStatusIndex = array_search($order->status, $statuses);
-                    
-                    // Handle 'cancelled' sebagai status non-linear
                     $isCancelled = ($order->status === 'cancelled');
                 @endphp
                 <div class="flex justify-between items-center relative mb-8">
-                    {{-- Garis progress --}}
                     <div class="absolute inset-x-0 top-1/2 h-0.5 bg-gray-200 transform -translate-y-1/2 z-0"></div>
                     
                     @foreach($statuses as $index => $status)
-                        <div class="flex flex-col items-center z-10 w-1/5 px-1"> {{-- Bagikan lebar --}}
+                        <div class="flex flex-col items-center z-10 w-1/{{ count($statuses) }} px-1">
                             <div class="w-8 h-8 rounded-full flex items-center justify-center 
                                 @if($index <= $currentStatusIndex && !$isCancelled) bg-sage-600 text-white
                                 @else bg-gray-300 text-gray-600 @endif">
                                 @if($index < $currentStatusIndex && !$isCancelled)
-                                    {{-- Icon Checkmark for completed steps --}}
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                     </svg>
                                 @elseif($index === $currentStatusIndex && !$isCancelled)
-                                    {{-- Icon Spinner/Current for current step --}}
                                     <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                 @else
-                                    {{-- Step number for future steps --}}
                                     {{ $index + 1 }}
                                 @endif
                             </div>
@@ -123,7 +116,6 @@
                         </div>
                     @endforeach
                     
-                    {{-- Special display for Cancelled status --}}
                     @if($isCancelled)
                         <div class="flex flex-col items-center absolute -bottom-8 left-1/2 -translate-x-1/2 text-red-600 font-semibold">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -159,7 +151,7 @@
                                     @elseif($order->status === 'paid') bg-blue-200 text-blue-800
                                     @elseif($order->status === 'processing') bg-indigo-200 text-indigo-800
                                     @elseif($order->status === 'shipped') bg-purple-200 text-purple-800
-                                    @elseif($order->status === 'delivered') bg-green-200 text-green-800
+                                    @elseif($order->status === 'completed') bg-green-200 text-green-800
                                     @elseif($order->status === 'cancelled') bg-red-200 text-red-800
                                     @endif">
                                     {{ ucfirst($order->status) }}
@@ -173,7 +165,6 @@
                                 <span class="font-medium text-gray-700">Metode Pengiriman:</span>
                                 <span class="text-gray-900">{{ ucfirst(str_replace('_', ' ', $order->shipping_method)) }}</span>
                             </div>
-                            {{-- BARIS BARU UNTUK RESI --}}
                             <div class="flex justify-between py-1">
                                 <span class="font-medium text-gray-700">Nomor Resi:</span>
                                 @if($order->tracking_number)
@@ -182,7 +173,6 @@
                                     <span class="text-gray-500 italic">Belum tersedia</span>
                                 @endif
                             </div>
-                            {{-- AKHIR BARIS BARU UNTUK RESI --}}
                         </div>
                     </div>
 
@@ -217,7 +207,7 @@
                             @foreach($order->items as $item)
                                 <div class="flex justify-between items-center p-3 bg-white rounded-md border border-gray-200 shadow-sm">
                                     <div class="flex items-center">
-                                        <img src="{{ $item->product->main_image ? asset('storage/' . $item->product->main_image) : 'https://via.placeholder.com/80' }}" 
+                                        <img src="{{ $item->product->main_image }}" 
                                              alt="{{ $item->product->name }}" 
                                              class="w-20 h-20 object-cover rounded-md mr-4">
                                         <div>
@@ -256,23 +246,35 @@
                     </div>
                 </div>
 
-                {{-- Tombol Aksi (Konfirmasi Pembayaran jika Pending) --}}
-                @if($order->status === 'pending')
-                    <div class="mt-8 flex justify-end">
+                {{-- Tombol Aksi --}}
+                <div class="mt-8 flex flex-col md:flex-row justify-end gap-4">
+                    {{-- Tombol Konfirmasi Pembayaran jika Pending --}}
+                    @if($order->status === 'pending')
                         <a href="#" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-sm text-white bg-sage-600 hover:bg-sage-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500 transition-all duration-200 transform hover:scale-105">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                             </svg>
                             Konfirmasi Pembayaran Sekarang
                         </a>
-                    </div>
-                @endif
+                    @endif
 
+                    {{-- Tombol Pesanan Diterima jika sudah dikirim/delivered --}}
+                    @if($order->status === 'shipped' || $order->status === 'delivered')
+                        <form action="{{ route('orders.receive', $order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin sudah menerima pesanan? Dana akan dikirim ke penjual.')">
+                            @csrf
+                            <button type="submit" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-bold rounded-lg shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 transform hover:scale-105">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Pesanan Diterima
+                            </button>
+                        </form>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-{{-- Pastikan Alpine.js sudah di-include di layout utama Anda (layouts/app.blade.php) --}}
-{{-- Contoh: <script src="//unpkg.com/alpinejs" defer></script> --}}
+{{-- Pastikan Alpine.js sudah di-include di layout utama Anda --}}
 @endsection

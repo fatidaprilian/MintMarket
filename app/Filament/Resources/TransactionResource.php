@@ -4,13 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TransactionResource\Pages;
 use App\Models\Transaction;
-use App\Models\TransactionItem; // Tambahkan ini jika Anda belum
+use App\Models\TransactionItem;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder; // Tambahkan ini
+use Illuminate\Database\Eloquent\Builder;
 
 class TransactionResource extends Resource
 {
@@ -28,20 +28,20 @@ class TransactionResource extends Resource
                         'paid' => 'Paid',
                         'processing' => 'Processing',
                         'shipped' => 'Shipped',
-                        'delivered' => 'Delivered', // Pastikan ini ada di enum migrasi transactions
+                        'delivered' => 'Delivered',
+                        'completed' => 'Completed', // TAMBAHKAN INI!
                         'cancelled' => 'Cancelled',
                     ])
                     ->required()
-                    ->columnSpanFull(), // Agar mengambil lebar penuh
+                    ->columnSpanFull(),
 
-                // Fields ini dibuat disabled karena ini detail transaksi, bukan untuk diedit langsung di form ini
                 Forms\Components\TextInput::make('transaction_code')->disabled(),
                 Forms\Components\Select::make('user_id')
-                    ->relationship('user', 'name') // Mengambil nama user dari relasi 'user'
+                    ->relationship('user', 'name')
                     ->disabled()
                     ->label('Pembeli'),
                 Forms\Components\Select::make('store_id')
-                    ->relationship('store', 'name') // Mengambil nama toko dari relasi 'store'
+                    ->relationship('store', 'name')
                     ->disabled()
                     ->label('Toko Penjual'),
                 Forms\Components\TextInput::make('total_amount')
@@ -60,9 +60,8 @@ class TransactionResource extends Resource
                 Forms\Components\TextInput::make('shipping_method')
                     ->disabled(),
 
-                // Menampilkan daftar produk dalam transaksi (jika diperlukan di form edit)
                 Forms\Components\Repeater::make('items')
-                    ->relationship('items') // Pastikan relasi 'items' ada di model Transaction
+                    ->relationship('items')
                     ->schema([
                         Forms\Components\Select::make('product_id')
                             ->relationship('product', 'name')
@@ -76,11 +75,11 @@ class TransactionResource extends Resource
                             ->prefix('IDR')
                             ->disabled(),
                     ])
-                    ->columns(3) // Tampilkan 3 kolom per item
-                    ->disabled() // Tidak bisa diedit di sini
+                    ->columns(3)
+                    ->disabled()
                     ->columnSpanFull()
-                    ->addable(false) // Tidak bisa menambah item baru dari form ini
-                    ->deletable(false) // Tidak bisa menghapus item dari form ini
+                    ->addable(false)
+                    ->deletable(false)
                     ->label('Detail Produk Transaksi'),
             ]);
     }
@@ -94,34 +93,23 @@ class TransactionResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                // Menampilkan nama produk dari transaction_items
                 Tables\Columns\TextColumn::make('items.product.name')
                     ->label('Produk')
-                    ->listWithLineBreaks() // Menampilkan setiap nama produk di baris baru
-                    ->limitList(2) // Membatasi tampilan hanya 2 produk pertama
-                    ->expandableLimitedList() // Memungkinkan user untuk melihat semua produk jika lebih dari limit
+                    ->listWithLineBreaks()
+                    ->limitList(2)
+                    ->expandableLimitedList()
                     ->searchable(query: function (Builder $query, string $search): Builder {
-                        // Custom search untuk mencari produk dalam transaction_items
                         return $query->whereHas('items.product', function (Builder $q) use ($search) {
                             $q->where('name', 'like', "%{$search}%");
                         });
                     }),
-                // Pengurutan untuk kolom produk (opsional, bisa rumit untuk multiple items)
-                // ->sortable(query: function (Builder $query, string $direction): Builder {
-                //     return $query->orderBy(TransactionItem::select('product_id')
-                //         ->whereColumn('transaction_items.transaction_id', 'transactions.id')
-                //         ->orderBy('id') // Urutkan berdasarkan ID item pertama sebagai contoh
-                //         ->limit(1), $direction);
-                // }),
 
-                // Kolom untuk Pembeli
-                Tables\Columns\TextColumn::make('user.name') // Akses melalui relasi user() di model Transaction
+                Tables\Columns\TextColumn::make('user.name')
                     ->label('Pembeli')
                     ->searchable()
                     ->sortable(),
 
-                // Kolom untuk Penjual
-                Tables\Columns\TextColumn::make('store.user.name') // Akses melalui relasi store() lalu relasi user() dari model Store
+                Tables\Columns\TextColumn::make('store.user.name')
                     ->label('Penjual')
                     ->searchable()
                     ->sortable(),
@@ -134,10 +122,12 @@ class TransactionResource extends Resource
                     ->color(fn(string $state): string => match ($state) {
                         'pending' => 'warning',
                         'paid' => 'info',
-                        'processing' => 'primary', // Tambahkan ini jika ada di enum migrasi
-                        'shipped' => 'primary',    // Sesuaikan warna jika perlu
+                        'processing' => 'primary',
+                        'shipped' => 'primary',
                         'delivered' => 'success',
+                        'completed' => 'success', // TAMBAHKAN INI!
                         'cancelled' => 'danger',
+                        default => 'secondary',
                     }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -159,8 +149,7 @@ class TransactionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Jika Anda ingin ada tab terpisah di halaman edit untuk melihat detail item transaksi:
-            // Relations\TransactionItemsRelationManager::class,
+            // Tambahkan relasi jika perlu
         ];
     }
 
@@ -168,7 +157,7 @@ class TransactionResource extends Resource
     {
         return [
             'index' => Pages\ListTransactions::route('/'),
-            'create' => Pages\CreateTransaction::route('/create'), // Tambahkan jika ada halaman create
+            'create' => Pages\CreateTransaction::route('/create'),
             'edit' => Pages\EditTransaction::route('/{record}/edit'),
         ];
     }

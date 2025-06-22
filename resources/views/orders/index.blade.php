@@ -77,7 +77,7 @@
                                     @foreach($order->items->take(2) as $item) {{-- Tampilkan maksimal 2 produk --}}
                                     <div class="flex items-center justify-between bg-white p-3 rounded-md border border-gray-200 shadow-sm">
                                         <div class="flex items-center">
-                                            <img src="{{ $item->product->main_image ? asset('storage/' . $item->product->main_image) : 'https://via.placeholder.com/70' }}" 
+                                            <img src="{{ $item->product->main_image }}" 
                                                  alt="{{ $item->product->name }}" 
                                                  class="w-16 h-16 object-cover rounded-md mr-3 border border-gray-200">
                                             <div>

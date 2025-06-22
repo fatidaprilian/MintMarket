@@ -245,8 +245,8 @@
                         @foreach($topProducts as $product)
                         <div class="flex items-center space-x-4">
                             <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                                @if($product->main_image_url)
-                                    <img src="{{ $product->main_image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                                @if($product->main_image)
+                                    <img src="{{ $product->main_image }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
                                         <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path></svg>

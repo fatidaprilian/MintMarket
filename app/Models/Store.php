@@ -44,7 +44,7 @@ class Store extends Model
         'terms_and_conditions',
         'rating',
         'last_active_at',
-        'auto_process_orders', // Ditambahkan
+        'auto_process_orders',
     ];
 
     /**
@@ -57,7 +57,7 @@ class Store extends Model
         'is_verified' => 'boolean',
         'operating_hours' => 'array',
         'last_active_at' => 'datetime',
-        'auto_process_orders' => 'boolean', // Ditambahkan
+        'auto_process_orders' => 'boolean',
     ];
 
     /**
@@ -169,6 +169,15 @@ class Store extends Model
         return 'Rp ' . number_format($totalSales, 0, ',', '.');
     }
 
+    /**
+     * Get formatted wallet balance (saldo dompet toko).
+     */
+    public function getFormattedWalletBalanceAttribute(): string
+    {
+        $balance = $this->wallet ? $this->wallet->balance : 0;
+        return 'Rp ' . number_format($balance, 0, ',', '.');
+    }
+
     // ==================== HELPER METHODS ====================
 
     /**
@@ -214,11 +223,12 @@ class Store extends Model
 
     /**
      * Get total sales amount for the store.
+     * Hanya transaksi yang sudah dicairkan ke dompet (status completed/delivered).
      */
     public function getTotalSales(): float
     {
         return $this->transactions()
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'delivered'])
             ->sum('total_amount') ?? 0;
     }
 
@@ -236,7 +246,7 @@ class Store extends Model
     public function getCompletedOrders(): int
     {
         return $this->transactions()
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'delivered'])
             ->count();
     }
 

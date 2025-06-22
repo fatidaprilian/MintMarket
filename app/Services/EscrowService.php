@@ -18,7 +18,7 @@ class EscrowService
             $transaction->status !== 'delivered' ||
             $transaction->escrow_released_at !== null // ini harus kamu tambahkan ke model & tabel transactions
         ) {
-            throw new Exception('Transaksi belum delivered atau escrow sudah dirilis.');
+            throw new Exception('Transaksi belum shipped atau escrow sudah dirilis.');
         }
 
         $storeWallet = $transaction->store->wallet;

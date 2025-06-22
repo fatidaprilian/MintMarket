@@ -10,14 +10,24 @@
             <h1 class="text-3xl font-bold text-gray-800 mb-1">Dompet Saya</h1>
             <div class="text-gray-500">Kelola saldo dan transaksi walletmu dengan mudah.</div>
         </div>
-        <a href="{{ route('wallet.topup.form') }}"
-            class="inline-flex items-center px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-700 shadow-md text-white rounded-lg font-semibold hover:scale-105 transition-transform duration-200">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
-                viewBox="0 0 24 24">
-                <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Top Up
-        </a>
+        <div class="flex gap-2">
+            <a href="{{ route('dashboard') }}"
+                class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Kembali
+            </a>
+            <a href="{{ route('wallet.topup.form') }}"
+                class="inline-flex items-center px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-700 shadow-md text-white rounded-lg font-semibold hover:scale-105 transition-transform duration-200">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Top Up
+            </a>
+        </div>
     </div>
 
     {{-- Saldo --}}

@@ -4,6 +4,18 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    {{-- Tombol Kembali ke Homepage --}}
+    <div class="mb-6">
+        <a href="{{ route('home') }}"
+           class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                viewBox="0 0 24 24">
+                <path d="M15 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Kembali ke Homepage
+        </a>
+    </div>
+
     <div class="bg-gradient-to-r from-sage-600 to-sage-700 rounded-lg p-6 md:p-8 mb-8 text-white shadow-lg">
         <div class="flex flex-col md:flex-row items-center justify-between">
             <div>

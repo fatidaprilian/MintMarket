@@ -135,7 +135,18 @@
                                         <option value="e_wallet">E-Wallet (Dana, OVO, GoPay, ShopeePay)</option>
                                         <option value="virtual_account">Virtual Account</option>
                                         <option value="cod">Bayar di Tempat (COD)</option>
+                                        <option value="saldo" 
+                                            {{ $user->wallet->balance < $total ? 'disabled' : '' }}
+                                        >Saldo Dompet ({{ 'Rp ' . number_format($user->wallet->balance, 0, ',', '.') }})</option>
                                     </select>
+                                    <p id="saldoInfo" class="text-xs mt-1 {{ $user->wallet->balance < $total ? 'text-red-500' : 'text-green-600' }}">
+                                        Saldo Anda: <b>Rp {{ number_format($user->wallet->balance, 0, ',', '.') }}</b>
+                                        @if($user->wallet->balance < $total)
+                                            (Saldo tidak cukup untuk membayar total pesanan)
+                                        @else
+                                            (Saldo cukup untuk membayar pesanan)
+                                        @endif
+                                    </p>
                                 </div>
                                 
                                 <div class="p-3 bg-blue-50 rounded-md mt-2">
@@ -159,7 +170,7 @@
                                         @foreach($storeItems as $item)
                                             <div class="flex justify-between items-center p-3 bg-white rounded-md border hover:bg-sage-50 transition-colors">
                                                 <div class="flex items-center">
-                                                    <img src="{{ $item->product->main_image ? asset('storage/' . $item->product->main_image) : 'https://via.placeholder.com/150' }}" 
+                                                    <img src="{{ $item->product->main_image }}" 
                                                          alt="{{ $item->product->name }}" 
                                                          class="w-14 h-14 object-cover rounded-md mr-3">
                                                     <div>
@@ -279,11 +290,45 @@ function useDefaultAddress() {
     document.getElementById('phone').value = @json($user->phone ?? '');
 }
 
-// Script untuk form checkout
+// Script untuk form checkout dan validasi saldo dompet
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('checkoutForm');
     const orderButton = document.getElementById('orderButton');
-    
+    const paymentMethodSelect = document.getElementById('payment_method');
+    const saldoOption = paymentMethodSelect.querySelector('option[value="saldo"]');
+    const saldoUser = {{ $user->wallet->balance }};
+    const totalOrder = {{ $total }};
+
+    function toggleSaldoOption() {
+        if (saldoUser < totalOrder) {
+            saldoOption.disabled = true;
+            if (paymentMethodSelect.value === 'saldo') {
+                orderButton.disabled = true;
+                orderButton.classList.add('opacity-70', 'pointer-events-none');
+            }
+        } else {
+            saldoOption.disabled = false;
+            if (paymentMethodSelect.value === 'saldo') {
+                orderButton.disabled = false;
+                orderButton.classList.remove('opacity-70', 'pointer-events-none');
+            }
+        }
+    }
+
+    paymentMethodSelect.addEventListener('change', function() {
+        if (this.value === 'saldo' && saldoUser < totalOrder) {
+            orderButton.disabled = true;
+            orderButton.classList.add('opacity-70', 'pointer-events-none');
+            document.getElementById('saldoInfo').classList.add('text-red-500');
+        } else {
+            orderButton.disabled = false;
+            orderButton.classList.remove('opacity-70', 'pointer-events-none');
+            document.getElementById('saldoInfo').classList.remove('text-red-500');
+        }
+    });
+
+    toggleSaldoOption();
+
     if (form && orderButton) {
         form.addEventListener('submit', function(event) {
             // Basic validation
@@ -317,7 +362,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             
             // Continue with form submission
-            // Form will be submitted naturally
         });
     }
 });

@@ -60,9 +60,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/buy-now/checkout', [CheckoutController::class, 'buyNowCheckout'])->name('buy-now-checkout');
     });
 
+    // Orders - Tambahkan route untuk menerima pesanan (release escrow)
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/{order}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{order}/receive', [OrderController::class, 'receive'])->name('receive'); // <-- Tambahan: Pesanan Diterima
     });
 
     // Store Management (1 user bisa buat/kelola toko)
@@ -107,6 +109,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [WalletController::class, 'index'])->name('index');
         Route::get('/topup', [WalletController::class, 'topupForm'])->name('topup.form');
         Route::post('/topup', [WalletController::class, 'topupSubmit'])->name('topup.submit');
-        // Route::post('/withdraw', [WalletController::class, 'withdraw'])->name('withdraw'); // Untuk fitur berikutnya
+        Route::post('/withdraw', [WalletController::class, 'withdraw'])->name('withdraw'); // Untuk fitur berikutnya
     });
 });

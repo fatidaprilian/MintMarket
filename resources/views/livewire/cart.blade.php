@@ -19,17 +19,9 @@
                         <div class="flex flex-col md:flex-row items-start md:items-center gap-6 {{ !$loop->last ? 'border-b border-gray-100 pb-6 mb-6' : '' }} transition-all duration-200 hover:bg-gray-50 rounded-lg p-4 -m-4">
                             {{-- Gambar Produk --}}
                             <div class="w-32 h-32 flex-shrink-0 mx-auto md:mx-0">
-                                @if($item['image'])
-                                    <img src="{{ asset('storage/' . $item['image']) }}" 
-                                         alt="{{ $item['name'] }}" 
-                                         class="w-full h-full object-cover rounded-lg shadow-md">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-br from-sage-100 to-sage-200 rounded-lg flex items-center justify-center shadow-md">
-                                        <svg class="w-12 h-12 text-sage-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                @endif
+                                <img src="{{ $item['image'] }}" 
+                                     alt="{{ $item['name'] }}" 
+                                     class="w-full h-full object-cover rounded-lg shadow-md">
                             </div>
                             
                             {{-- Info Produk --}}
@@ -157,14 +149,12 @@
                     </div>
                     
                     <div class="space-y-3">
-                        {{-- KODE YANG DIPERBARUI --}}
                         <a href="{{ route('checkout.index') }}" class="w-full bg-gradient-to-r from-sage-600 to-sage-700 text-white font-bold py-4 px-6 rounded-lg hover:from-sage-700 hover:to-sage-800 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                             </svg>
                             Lanjut ke Checkout
                         </a>
-                        {{-- AKHIR DARI KODE YANG DIPERBARUI --}}
                         
                         <a href="{{ route('products.index') }}" 
                            class="block w-full text-center border-2 border-sage-600 text-sage-600 font-bold py-4 px-6 rounded-lg hover:bg-sage-50 hover:border-sage-700 hover:text-sage-700 transition-all duration-300 transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-2">

@@ -36,7 +36,7 @@ class MyStoreController extends Controller
         }
 
         $totalTransactions = $store->transactions()->count();
-        $completedTransactions = $store->transactions()->where('status', 'completed')->count();
+        $completedTransactions = $store->transactions()->whereIn('status', ['completed', 'delivered'])->count();
         $pendingTransactions = $store->transactions()->whereIn('status', ['pending', 'paid', 'processing'])->count();
         $totalProducts = $store->products()->count();
         $availableProducts = $store->products()->available()->count();
@@ -372,14 +372,15 @@ class MyStoreController extends Controller
             return redirect()->route('store.create')->with('error', 'Anda belum memiliki toko.');
         }
 
-        $completedTransactions = $store->transactions()->where('status', 'completed');
+        $completedTransactions = $store->transactions()
+            ->whereIn('status', ['completed', 'delivered']);
 
         $totalRevenue = $completedTransactions->clone()->sum('total_amount');
         $totalOrders = $completedTransactions->clone()->count();
         $averageOrderValue = ($totalOrders > 0) ? $totalRevenue / $totalOrders : 0;
 
         $salesData = $store->transactions()
-            ->where('status', 'completed')
+            ->whereIn('status', ['completed', 'delivered'])
             ->where('created_at', '>=', now()->subDays(30))
             ->select(
                 DB::raw('DATE(created_at) as date'),
@@ -392,11 +393,11 @@ class MyStoreController extends Controller
         $chartLabels = $salesData->pluck('date')->map(fn($date) => Carbon::parse($date)->format('d M'));
         $chartData = $salesData->pluck('total');
 
-        // REVISI: Query Produk Terlaris diperbaiki
+        // Produk Terlaris
         $topProducts = Product::where('products.store_id', $store->id)
             ->join('transaction_items', 'products.id', '=', 'transaction_items.product_id')
             ->join('transactions', 'transaction_items.transaction_id', '=', 'transactions.id')
-            ->where('transactions.status', 'completed')
+            ->whereIn('transactions.status', ['completed', 'delivered'])
             ->select('products.*', DB::raw('SUM(transaction_items.quantity) as items_sold'))
             ->groupBy('products.id')
             ->orderByDesc('items_sold')

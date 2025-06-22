@@ -69,7 +69,7 @@
                     @foreach($transaction->items as $item)
                         <div class="flex items-center space-x-4">
                             <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src="{{ $item->product->main_image_url }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover">
+                                <img src="{{ $item->product->main_image }}" alt="{{ $item->product->name }}" class="w-full h-full object-cover">
                             </div>
                             <div class="flex-1">
                                 <p class="font-medium text-gray-900">{{ $item->product->name }}</p>

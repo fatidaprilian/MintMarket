@@ -52,11 +52,7 @@ class WalletTransaction extends Model
 
             // Penyesuaian saldo (credit = tambah, debit = kurang)
             $isCredit = in_array($transaction->type, [
-                'credit',
-                'bank_transfer',
-                'qris',
-                'e_wallet',
-                'virtual_account',
+                'credit'
             ]);
 
             $newBalance = $isCredit
