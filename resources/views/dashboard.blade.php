@@ -8,16 +8,31 @@
         <div class="flex flex-col md:flex-row items-center justify-between">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold">
-                    Selamat datang, {{ $user->name }}! 👋 {{-- Menggunakan $user yang dilewatkan dari controller --}}
+                    Selamat datang, {{ $user->name }}! 👋
                 </h1>
                 <p class="text-sage-100 mt-2 text-sm md:text-base">
                     Kelola akun, pesanan, dan aktivitas Anda di MintMarket dengan mudah.
                 </p>
             </div>
-            <div class="mt-4 md:mt-0 hidden md:block">
-                {{-- Ini bisa diganti dengan avatar profil user jika ada --}}
-                <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center border-2 border-white">
-                    <span class="text-3xl font-bold uppercase">{{ substr($user->name, 0, 1) }}</span>
+            <div class="mt-4 md:mt-0 flex flex-col md:flex-row items-center gap-4">
+                {{-- Saldo Wallet User --}}
+                <div class="bg-white/20 rounded-lg px-5 py-3 flex items-center border-2 border-white mr-0 md:mr-4 shadow-sm">
+                    <svg class="w-8 h-8 text-sage-100 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 9V7a5 5 0 00-10 0v2a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2z"></path>
+                    </svg>
+                    <div>
+                        <div class="text-xs text-sage-100 font-semibold">Saldo Wallet</div>
+                        <div class="text-lg font-bold text-white">
+                            Rp {{ number_format(optional($user->wallet)->balance ?? 0, 0, ',', '.') }}
+                        </div>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    {{-- Foto profil user pakai accessor --}}
+                    <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center border-2 border-white overflow-hidden">
+                        <img src="{{ Auth::user()->profile_picture_url }}" alt="{{ Auth::user()->name }}" class="h-full w-full object-cover">
+                    </div>
                 </div>
             </div>
         </div>
@@ -33,7 +48,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->orders_count }}</h3> {{-- Menggunakan $user dari controller --}}
+                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->orders_count }}</h3>
                     <p class="text-gray-600 text-sm">Total Pesanan</p>
                 </div>
             </div>
@@ -48,7 +63,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->completed_orders_count }}</h3> {{-- Menggunakan $user dari controller --}}
+                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->completed_orders_count }}</h3>
                     <p class="text-gray-600 text-sm">Pesanan Selesai</p>
                 </div>
             </div>
@@ -63,7 +78,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->pending_orders_count }}</h3> {{-- Menggunakan $user dari controller --}}
+                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->pending_orders_count }}</h3>
                     <p class="text-gray-600 text-sm">Menunggu Proses</p>
                 </div>
             </div>
@@ -78,7 +93,7 @@
                     </svg>
                 </div>
                 <div class="ml-4">
-                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->wishlist_count ?? 0 }}</h3> {{-- Menggunakan $user dari controller --}}
+                    <h3 class="text-2xl font-bold text-gray-900">{{ $user->wishlist_count ?? 0 }}</h3>
                     <p class="text-gray-600 text-sm">Wishlist</p>
                 </div>
             </div>
@@ -102,7 +117,7 @@
                     </div>
                 </a>
 
-                <a href="{{ route('orders.index') }}" {{-- Link ke halaman orders.index --}}
+                <a href="{{ route('orders.index') }}"
                    class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                     <div class="w-10 h-10 bg-sage-100 rounded-full flex items-center justify-center">
                         <svg class="w-5 h-5 text-sage-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,9 +130,22 @@
                     </div>
                 </a>
 
-                {{-- Link untuk Buat Toko / Kelola Toko --}}
+                {{-- Tombol ke Dompet Saya --}}
+                <a href="{{ route('wallet.index') }}"
+                   class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                        <svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a5 5 0 00-10 0v2a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2z" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="font-medium text-gray-900">Dompet Saya</h3>
+                        <p class="text-sm text-gray-600">Lihat saldo & riwayat transaksi wallet</p>
+                    </div>
+                </a>
+
                 @php
-                    $hasStore = $user->hasStore(); // Menggunakan metode hasStore() dari objek user yang sudah dimuat
+                    $hasStore = $user->hasStore();
                 @endphp
                 <a href="{{ $hasStore ? route('store.index') : route('store.create') }}" 
                    class="flex items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">

@@ -15,6 +15,8 @@ class WalletResource extends Resource
     protected static ?string $model = Wallet::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationLabel = 'Wallet';
+    protected static ?string $navigationGroup = 'Keuangan';
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -22,20 +24,23 @@ class WalletResource extends Resource
             ->schema([
                 Forms\Components\Select::make('store_id')
                     ->label('Toko')
-                    ->options(Store::pluck('name', 'id'))
+                    ->options(fn() => Store::pluck('name', 'id')->toArray())
                     ->searchable()
-                    ->nullable(),
+                    ->nullable()
+                    ->placeholder('— Jika wallet toko —'),
 
                 Forms\Components\Select::make('user_id')
                     ->label('User (Wallet Pribadi)')
-                    ->options(User::pluck('name', 'id'))
+                    ->options(fn() => User::pluck('name', 'id')->toArray())
                     ->searchable()
-                    ->nullable(),
+                    ->nullable()
+                    ->placeholder('— Jika wallet user —'),
 
                 Forms\Components\TextInput::make('balance')
                     ->label('Saldo')
                     ->numeric()
-                    ->required(),
+                    ->required()
+                    ->prefix('Rp'),
             ]);
     }
 
@@ -46,31 +51,38 @@ class WalletResource extends Resource
                 Tables\Columns\TextColumn::make('store.name')
                     ->label('Nama Toko')
                     ->searchable()
-                    ->toggleable(),
-
+                    ->toggleable()
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Nama User')
                     ->searchable()
-                    ->toggleable(),
-
+                    ->toggleable()
+                    ->placeholder('-'),
                 Tables\Columns\TextColumn::make('balance')
                     ->label('Saldo')
                     ->money('IDR', true)
-                    ->sortable(),
+                    ->sortable()
+                    ->alignRight()
+                    ->description(fn(Wallet $record) => $record->store_id ? 'Wallet Toko' : 'Wallet User'),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime('d M Y H:i')
+                    ->label('Dibuat')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('store_id')
                     ->label('Toko')
-                    ->options(Store::pluck('name', 'id'))
+                    ->options(fn() => Store::pluck('name', 'id')->toArray())
                     ->searchable(),
-
                 Tables\Filters\SelectFilter::make('user_id')
                     ->label('User')
-                    ->options(User::pluck('name', 'id'))
+                    ->options(fn() => User::pluck('name', 'id')->toArray())
                     ->searchable(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -90,6 +102,7 @@ class WalletResource extends Resource
             'index' => Pages\ListWallets::route('/'),
             'create' => Pages\CreateWallet::route('/create'),
             'edit' => Pages\EditWallet::route('/{record}/edit'),
+            'view' => Pages\ViewWallet::route('/{record}'),
         ];
     }
 }

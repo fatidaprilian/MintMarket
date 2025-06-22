@@ -25,6 +25,11 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Filament\Resources\WalletTopupResource; // <<< Tambahkan ini
+use App\Filament\Resources\WalletResource; // <<< Tambahkan ini
+use App\Filament\Resources\WalletTransactionResource; // <<< Tambahkan ini
+use App\Filament\Resources\WithdrawalResource; // <<< Tambahkan ini
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -71,7 +76,12 @@ class AdminPanelProvider extends PanelProvider
                 StoreResource::class,
                 TransactionResource::class,
                 UserResource::class,
-                // Hapus referensi WalletResource, WalletTransactionResource, WithdrawalResource
+                WalletTopupResource::class,
+                WalletResource::class,
+                WalletTransactionResource::class,
+                WithdrawalResource::class,
+
+
             ]);
     }
 }

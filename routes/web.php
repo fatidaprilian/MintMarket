@@ -11,10 +11,12 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\DashboardController;
+
+use App\Http\Controllers\WalletController; // Untuk wallet user
+use App\Http\Controllers\MyStore\WalletController as StoreWalletController; // Untuk wallet toko
+use App\Http\Controllers\MyStore\TransactionController;
+
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MyStore\WalletController; // <-- TAMBAHKAN INI
-use App\Http\Controllers\MyStore\TransactionController; // <-- TAMBAHKAN INI
-// use App\Livewire\StoreProfile; // Hapus atau komentari import ini
 
 // Public routes (untuk tamu - bisa akses tanpa login)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -39,7 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Cart Management (butuh login)
+    // Cart Management
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/add', [CartController::class, 'add'])->name('add');
@@ -66,13 +68,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Store Management (1 user bisa buat/kelola toko)
     Route::prefix('my-store')->name('store.')->group(function () {
         Route::get('/', [MyStoreController::class, 'index'])->name('index');
-
-        // KEMBALIKAN KE CONTROLLER
         Route::get('/create', [MyStoreController::class, 'create'])->name('create');
-        Route::post('/', [MyStoreController::class, 'store'])->name('store'); // Aktifkan kembali
+        Route::post('/', [MyStoreController::class, 'store'])->name('store');
         Route::get('/edit', [MyStoreController::class, 'edit'])->name('edit');
-        Route::patch('/update', [MyStoreController::class, 'update'])->name('update'); // Aktifkan kembali
-
+        Route::patch('/update', [MyStoreController::class, 'update'])->name('update');
 
         // Store Products Management
         Route::prefix('products')->name('products.')->group(function () {
@@ -84,7 +83,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{product}', [MyStoreController::class, 'destroyProduct'])->name('destroy');
         });
 
-        // Store Transactions Management (changed from 'orders' to 'transactions')
+        // Store Transactions Management
         Route::prefix('transactions')->name('transactions.')->group(function () {
             Route::get('/', [MyStoreController::class, 'transactions'])->name('index');
             Route::get('/{transaction}', [MyStoreController::class, 'showTransaction'])->name('show');
@@ -94,13 +93,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Store Analytics
         Route::get('/analytics', [MyStoreController::class, 'analytics'])->name('analytics');
-
-        // Store Promotions (Added this route)
         Route::get('/promotions', [MyStoreController::class, 'promotions'])->name('promotions');
 
+        // Store Wallet (khusus wallet toko)
         Route::prefix('wallet')->name('wallet.')->group(function () {
-            Route::get('/', [WalletController::class, 'index'])->name('index');
-            Route::post('/withdraw', [WalletController::class, 'storeWithdrawal'])->name('withdraw');
+            Route::get('/', [StoreWalletController::class, 'index'])->name('index');
+            Route::post('/withdraw', [StoreWalletController::class, 'storeWithdrawal'])->name('withdraw');
         });
+    });
+
+    // Wallet User (bukan wallet toko)
+    Route::prefix('wallet')->name('wallet.')->group(function () {
+        Route::get('/', [WalletController::class, 'index'])->name('index');
+        Route::get('/topup', [WalletController::class, 'topupForm'])->name('topup.form');
+        Route::post('/topup', [WalletController::class, 'topupSubmit'])->name('topup.submit');
+        // Route::post('/withdraw', [WalletController::class, 'withdraw'])->name('withdraw'); // Untuk fitur berikutnya
     });
 });
