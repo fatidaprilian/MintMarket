@@ -126,7 +126,7 @@
                     <svg class="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
                     </svg>
-                    <a href="{{ route('categories.show', $product->category) }}" class="text-gray-500 hover:text-sage-600 transition-colors">
+                    <a href="{{ route('products.index', ['category' => $product->category->slug]) }}" class="text-gray-500 hover:text-sage-600 transition-colors">
                         {{ $product->category->name }}
                     </a>
                 </li>
@@ -163,7 +163,7 @@
                     <div class="aspect-square bg-gray-100 rounded-xl overflow-hidden mb-4 relative group" onclick="ProductGallery.openModal()">
                         @if($product->main_image)
                             <img id="mainImage" 
-                                 src="{{ asset('storage/' . $product->main_image) }}" 
+                                 src="{{ $product->main_image }}" 
                                  alt="{{ $product->name }}" 
                                  class="w-full h-full object-cover image-gallery-main">
                             
@@ -188,8 +188,8 @@
                         <div class="grid grid-cols-5 gap-2">
                             @foreach($product->image as $image)
                                 <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer border-2 hover:border-sage-300 transition-colors @if($loop->first) border-sage-500 @else border-transparent @endif" 
-                                     onclick="ProductGallery.changeMainImage('{{ asset('storage/' . $image) }}', this)">
-                                    <img src="{{ asset('storage/' . $image) }}" 
+                                     onclick="ProductGallery.changeMainImage('{{ Storage::url($image) }}', this)">
+                                    <img src="{{ Storage::url($image) }}" 
                                          alt="{{ $product->name }}" 
                                          class="w-full h-full object-cover">
                                 </div>
@@ -227,8 +227,13 @@
                                 </p>
                             @else
                                 {{-- Tampilan harga normal (jika tidak ada flash sale) --}}
-                                <div class="text-3xl font-bold text-sage-700">
-                                    {{ $product->formatted_price }}
+                                <div class="space-y-2">
+                                    @if($product->strikethrough_price)
+                                        <span class="text-lg text-gray-400 line-through">{{ $product->formatted_strikethrough_price }}</span>
+                                    @endif
+                                    <div class="text-3xl font-bold text-sage-700">
+                                        {{ $product->formatted_current_price }}
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -356,11 +361,77 @@
             </div>
         @endif
 
-        @if($relatedProducts && $relatedProducts->count() > 0)
+        <!-- Produk Lainnya dari Toko Ini -->
+        @if(isset($storeProducts) && $storeProducts->count() > 0)
+            <div class="mt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">Produk Lainnya dari {{ $product->store->name }}</h2>
+                    <a href="{{ route('stores.show', $product->store) }}" 
+                       class="text-sage-600 hover:text-sage-700 font-medium text-sm flex items-center gap-1">
+                        Lihat Semua
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    @foreach($storeProducts as $storeProduct)
+                        <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group">
+                            <a href="{{ route('products.show', $storeProduct) }}">
+                                <div class="aspect-square bg-gray-100 relative overflow-hidden">
+                                    @if($storeProduct->main_image)
+                                        <img src="{{ $storeProduct->main_image }}" 
+                                             alt="{{ $storeProduct->name }}" 
+                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-gray-400">
+                                            <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="absolute top-2 left-2">
+                                        <span class="bg-white/90 text-gray-700 px-2 py-1 rounded text-xs font-medium backdrop-blur-sm">
+                                            {{ ucfirst($storeProduct->condition) }}
+                                        </span>
+                                    </div>
+
+                                    @if($storeProduct->discount_percentage > 0)
+                                        <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+                                            -{{ $storeProduct->discount_percentage }}%
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                <div class="p-3">
+                                    <h3 class="font-medium text-gray-900 text-sm mb-2 line-clamp-2 leading-5 group-hover:text-sage-600 transition-colors">
+                                        {{ $storeProduct->name }}
+                                    </h3>
+                                    <div class="mb-2">
+                                        @if($storeProduct->strikethrough_price)
+                                            <span class="text-xs text-gray-400 line-through block">{{ $storeProduct->formatted_strikethrough_price }}</span>
+                                        @endif
+                                        <span class="text-lg font-bold text-sage-600">{{ $storeProduct->formatted_current_price }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-500">
+                                        <span class="text-green-600 font-medium">{{ ucfirst($storeProduct->status) }}</span>
+                                        <span class="text-gray-500">Stok: {{ $storeProduct->stock }}</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        <!-- Produk Serupa (Kategori yang Sama) -->
+        @if(isset($relatedProducts) && $relatedProducts->count() > 0)
             <div class="mt-8">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-gray-900">Produk Serupa</h2>
-                    <a href="{{ route('categories.show', $product->category) }}" 
+                    <a href="{{ route('products.index', ['category' => $product->category->slug]) }}" 
                        class="text-sage-600 hover:text-sage-700 font-medium text-sm flex items-center gap-1">
                         Lihat Semua
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -374,7 +445,7 @@
                             <a href="{{ route('products.show', $relatedProduct) }}">
                                 <div class="aspect-square bg-gray-100 relative overflow-hidden">
                                     @if($relatedProduct->main_image)
-                                        <img src="{{ asset('storage/' . $relatedProduct->main_image) }}" 
+                                        <img src="{{ $relatedProduct->main_image }}" 
                                              alt="{{ $relatedProduct->name }}" 
                                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                     @else
@@ -390,15 +461,24 @@
                                             {{ ucfirst($relatedProduct->condition) }}
                                         </span>
                                     </div>
+
+                                    @if($relatedProduct->discount_percentage > 0)
+                                        <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+                                            -{{ $relatedProduct->discount_percentage }}%
+                                        </div>
+                                    @endif
                                 </div>
                                 
                                 <div class="p-3">
-                                    <h3 class="font-medium text-gray-900 text-sm mb-2 line-clamp-2 leading-5 group-hover:text-sage-600 transition-colors">
+                                    <h3 class="font-medium text-gray-900 text-sm mb-2 line-clamp-2 leading-5 group-hover:text-sage-700 transition-colors">
                                         {{ $relatedProduct->name }}
                                     </h3>
-                                    <p class="text-lg font-bold text-sage-600 mb-2">
-                                        {{ $relatedProduct->formatted_price }}
-                                    </p>
+                                    <div class="mb-2">
+                                        @if($relatedProduct->strikethrough_price)
+                                            <span class="text-xs text-gray-400 line-through block">{{ $relatedProduct->formatted_strikethrough_price }}</span>
+                                        @endif
+                                        <span class="text-lg font-bold text-sage-700">{{ $relatedProduct->formatted_current_price }}</span>
+                                    </div>
                                     <div class="flex items-center justify-between text-xs text-gray-500">
                                         <span class="truncate">{{ $relatedProduct->store->name }}</span>
                                         <span class="text-green-600 font-medium">{{ ucfirst($relatedProduct->status) }}</span>
@@ -450,7 +530,6 @@
         <img id="modalImage" src="" alt="" class="max-w-full max-h-full object-contain rounded-lg">
     </div>
 </div>
-@endsection
 
 @push('scripts')
 <script>
@@ -650,3 +729,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+@endsection

@@ -23,7 +23,7 @@ class ProductResource extends Resource
     public static function form(Form $form): Form
     {
         // --- Logika untuk menentukan sesi Flash Sale berikutnya ---
-        $schedule = [12, 20]; // Jam mulai sesi (10:00 dan 20:00 WIB)
+        $schedule = [9, 22]; // Jam mulai sesi (10:00 dan 20:00 WIB)
         $now = now();
         $nextSessionStart = null;
 

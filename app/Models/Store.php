@@ -6,82 +6,284 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-// use Illuminate\Database\Eloquent\SoftDeletes; // Hapus ini
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\Builder;
 
 class Store extends Model
 {
-    use HasFactory; // Hapus SoftDeletes
+    use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'user_id',
         'name',
         'slug',
         'description',
-        'is_active',
+        'logo',
+        'banner',
         'province',
         'city',
         'address',
+        'postal_code',
+        'phone',
+        'whatsapp',
+        'email',
+        'is_active',
+        'is_verified',
+        'store_type',
+        'operating_hours',
+        'instagram',
+        'facebook',
+        'tiktok',
+        'terms_and_conditions',
+        'rating',
+        'last_active_at'
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_verified' => 'boolean',
+        'operating_hours' => 'array',
+        'last_active_at' => 'datetime',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($store) {
+            if (empty($store->slug)) {
+                $store->slug = Str::slug($store->name);
+            }
+        });
+
+        static::deleting(function ($store) {
+            if ($store->logo && Storage::disk('public')->exists($store->logo)) {
+                Storage::disk('public')->delete($store->logo);
+            }
+            if ($store->banner && Storage::disk('public')->exists($store->banner)) {
+                Storage::disk('public')->delete($store->banner);
+            }
+        });
+    }
+
+    /**
+     * Scope a query to only include active stores.
+     */
+    public function scopeActive(Builder $query): void
+    {
+        $query->where('is_active', true);
+    }
+
+    // ==================== RELATIONSHIPS ====================
+
+    /**
+     * Get the user that owns the store.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get all products for the store.
+     */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
     /**
-     * Orders yang masuk ke toko ini
+     * Get all transactions for the store.
      */
-    public function orders(): HasManyThrough
+    public function transactions(): HasMany
     {
-        return $this->hasManyThrough(
-            Transaction::class,
-            Product::class,
-            'store_id', // foreign key on products table
-            'product_id', // foreign key on transactions table
-            'id', // local key on stores table
-            'id' // local key on products table
-        );
+        return $this->hasMany(Transaction::class);
     }
 
     /**
-     * Scopes
+     * Get all orders for the store.
      */
-    public function scopeActive($query)
+    public function orders(): HasMany
     {
-        return $query->where('is_active', true);
+        return $this->hasMany(Order::class);
     }
 
     /**
-     * Route key name
+     * Get all order items through orders.
      */
-    public function getRouteKeyName()
+    public function orderItems(): HasMany
     {
-        return 'slug';
+        return $this->hasMany(OrderItem::class);
     }
 
     /**
-     * Helper methods
+     * Get all reviews for the store through products.
      */
-    public function getTotalProductsAttribute()
+    public function reviews()
     {
-        return $this->products()->count();
+        return $this->hasManyThrough(Review::class, Product::class);
     }
 
-    public function getTotalOrdersAttribute()
+    // ==================== ACCESSORS ====================
+
+    /**
+     * Get the store logo URL.
+     */
+    public function getLogoUrlAttribute(): string
+    {
+        return $this->logo ? Storage::url($this->logo) : asset('images/default-store-logo.png');
+    }
+
+    /**
+     * Get the store banner URL.
+     */
+    public function getBannerUrlAttribute(): string
+    {
+        return $this->banner ? Storage::url($this->banner) : asset('images/default-store-banner.jpg');
+    }
+
+    /**
+     * Get formatted total sales.
+     */
+    public function getFormattedTotalSalesAttribute(): string
+    {
+        $totalSales = $this->getTotalSales();
+        return 'Rp ' . number_format($totalSales, 0, ',', '.');
+    }
+
+    // ==================== HELPER METHODS ====================
+
+    /**
+     * Check if store profile is complete.
+     */
+    public function isComplete(): bool
+    {
+        return !empty($this->name) && !empty($this->description) &&
+            !empty($this->address) && !empty($this->phone) && !empty($this->postal_code);
+    }
+
+    /**
+     * Get store profile completion percentage.
+     */
+    public function getCompletionPercentage(): int
+    {
+        $requiredFields = ['name', 'description', 'address', 'phone', 'postal_code'];
+        $optionalFields = ['logo', 'banner', 'whatsapp', 'email', 'instagram'];
+
+        $completed = 0;
+        $total = count($requiredFields) + count($optionalFields);
+
+        foreach ($requiredFields as $field) {
+            if (!empty($this->$field)) $completed++;
+        }
+
+        foreach ($optionalFields as $field) {
+            if (!empty($this->$field)) $completed++;
+        }
+
+        $additionalOptionalFields = ['is_verified', 'store_type', 'operating_hours', 'facebook', 'tiktok', 'terms_and_conditions', 'rating', 'last_active_at'];
+        foreach ($additionalOptionalFields as $field) {
+            if ($field === 'operating_hours') {
+                if (!empty($this->$field) && is_array($this->$field)) {
+                    $completed++;
+                }
+            } elseif ($field === 'last_active_at') {
+                if ($this->$field !== null) {
+                    $completed++;
+                }
+            } else {
+                if (!empty($this->$field)) $completed++;
+            }
+            $total++;
+        }
+
+        return ($total > 0) ? round(($completed / $total) * 100) : 0;
+    }
+
+    /**
+     * Get total sales amount for the store.
+     */
+    public function getTotalSales(): float
+    {
+        return $this->transactions()
+            ->where('status', 'completed')
+            ->sum('total_amount') ?? 0;
+    }
+
+    /**
+     * Get total orders count.
+     */
+    public function getTotalOrders(): int
     {
         return $this->orders()->count();
+    }
+
+    /**
+     * Get completed orders count.
+     */
+    public function getCompletedOrders(): int
+    {
+        return $this->orders()
+            ->where('status', 'completed')
+            ->count();
+    }
+
+    /**
+     * Get pending orders count.
+     */
+    public function getPendingOrders(): int
+    {
+        return $this->orders()
+            ->whereIn('status', ['pending', 'processing'])
+            ->count();
+    }
+
+    /**
+     * Get average rating from reviews.
+     */
+    public function getAverageRating(): float
+    {
+        return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get total reviews count.
+     */
+    public function getTotalReviews(): int
+    {
+        return $this->reviews()->count();
+    }
+
+    /**
+     * Update store's last active timestamp.
+     */
+    public function updateLastActive(): void
+    {
+        $this->update(['last_active_at' => now()]);
+    }
+
+    /**
+     * Check if store is verified.
+     */
+    public function isVerified(): bool
+    {
+        return $this->is_verified;
+    }
+
+    /**
+     * Get store status badge.
+     */
+    public function getStatusBadge(): array
+    {
+        if (!$this->is_active) {
+            return ['class' => 'bg-red-100 text-red-800', 'text' => 'Tidak Aktif'];
+        }
+
+        if ($this->is_verified) {
+            return ['class' => 'bg-green-100 text-green-800', 'text' => 'Terverifikasi'];
+        }
+
+        return ['class' => 'bg-yellow-100 text-yellow-800', 'text' => 'Pending Verifikasi'];
     }
 }

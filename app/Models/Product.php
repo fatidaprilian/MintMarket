@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Storage;
+
 
 class Product extends Model
 {
@@ -56,6 +59,8 @@ class Product extends Model
 
     public function transactions(): HasMany
     {
+        // Relasi ini mungkin lebih tepat berada di TransactionItem jika produk bisa ada di banyak transaksi
+        // melalui transaction_items. Jika ini adalah relasi langsung transaksi ke produk (bukan itemnya), ini OK.
         return $this->hasMany(Transaction::class);
     }
 
@@ -65,19 +70,24 @@ class Product extends Model
      * ==========================================================
      */
 
-    public function scopeAvailable($query)
+    public function scopeAvailable(Builder $query): void
     {
-        return $query->where('status', 'tersedia')->where('is_active', true);
+        $query->where('status', 'tersedia')
+            ->where('is_active', true)
+            // Pastikan toko yang memiliki produk juga aktif
+            ->whereHas('store', function (Builder $q) {
+                $q->where('is_active', true);
+            });
     }
 
-    public function scopeSold($query)
+    public function scopeSold(Builder $query): void
     {
-        return $query->where('status', 'terjual');
+        $query->where('status', 'terjual');
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): void
     {
-        return $query->where('is_active', true);
+        $query->where('is_active', true);
     }
 
     /**
@@ -86,15 +96,24 @@ class Product extends Model
      * ==========================================================
      */
 
-    public function getMainImageAttribute()
+    public function getMainImageAttribute(): ?string
     {
+        // Pastikan 'image' adalah array dan tidak kosong
         if (is_array($this->image) && count($this->image) > 0) {
-            return $this->image[0];
+            // Ambil elemen pertama yang tidak null atau string kosong dari array
+            $validImages = array_filter($this->image, fn($path) => !empty($path));
+            $firstImage = reset($validImages); // Mengambil elemen pertama setelah filter
+
+            if ($firstImage && Storage::disk('public')->exists($firstImage)) {
+                return Storage::url($firstImage);
+            }
         }
-        return $this->image;
+        // Mengembalikan path ke gambar placeholder default jika tidak ada gambar atau path tidak valid
+        // Pastikan Anda memiliki file ini di public/images/
+        return asset('images/default-product.png');
     }
 
-    public function getFormattedPriceAttribute()
+    public function getFormattedPriceAttribute(): string
     {
         return 'Rp ' . number_format($this->price, 0, ',', '.');
     }
@@ -105,17 +124,13 @@ class Product extends Model
      * ==========================================================
      */
 
-    /**
-     * PERBAIKAN: Cek apakah flash sale sedang berlangsung SEKARANG.
-     * Logika ini sekarang memeriksa waktu mulai dan waktu berakhir sesi.
-     */
     public function isFlashSaleActive(): bool
     {
         if ($this->flash_sale_price === null || $this->flash_sale_end_date === null) {
             return false;
         }
 
-        // Hitung waktu mulai sesi (dengan asumsi durasi 14 jam)
+        // Hitung waktu mulai sesi (asumsi durasi 14 jam seperti di HomeController)
         $sessionStartTime = $this->flash_sale_end_date->copy()->subHours(14);
 
         // Return true HANYA jika waktu saat ini berada di antara waktu mulai dan berakhir
@@ -141,33 +156,35 @@ class Product extends Model
         return Attribute::make(
             get: function () {
                 if ($this->isFlashSaleActive()) {
-                    return $this->price;
+                    return $this->price; // Harga normal dicoret saat flash sale aktif
                 }
                 if ($this->hasNormalDiscount()) {
-                    return $this->original_price;
+                    return $this->original_price; // Harga asli dicoret saat diskon normal
                 }
-                return null;
+                return null; // Tidak ada harga coret
             }
         );
     }
 
     public function getDiscountPercentageAttribute(): int
     {
-        if ($this->isFlashSaleActive()) {
+        if ($this->isFlashSaleActive() && $this->price > 0) {
+            // Perhitungan diskon flash sale: (Harga normal - Harga flash sale) / Harga normal
             return round((($this->price - $this->flash_sale_price) / $this->price) * 100);
         }
-        if ($this->hasNormalDiscount()) {
+        if ($this->hasNormalDiscount() && $this->original_price > 0) {
+            // Perhitungan diskon normal: (Harga asli - Harga jual) / Harga asli
             return round((($this->original_price - $this->price) / $this->original_price) * 100);
         }
         return 0;
     }
 
-    public function getFormattedCurrentPriceAttribute()
+    public function getFormattedCurrentPriceAttribute(): string
     {
         return 'Rp ' . number_format($this->current_price, 0, ',', '.');
     }
 
-    public function getFormattedStrikethroughPriceAttribute()
+    public function getFormattedStrikethroughPriceAttribute(): ?string // Tambahkan return type-hint nullable string
     {
         if ($this->strikethrough_price) {
             return 'Rp ' . number_format($this->strikethrough_price, 0, ',', '.');
@@ -181,7 +198,7 @@ class Product extends Model
      * ==========================================================
      */
 
-    public function getRouteKeyName()
+    public function getRouteKeyName(): string
     {
         return 'slug';
     }

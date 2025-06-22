@@ -10,8 +10,9 @@ use App\Http\Controllers\MyStoreController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\SearchController;
-use App\Http\Controllers\DashboardController; // Tambahkan ini
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
+// use App\Livewire\StoreProfile; // Hapus atau komentari import ini
 
 // Public routes (untuk tamu - bisa akses tanpa login)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -21,7 +22,7 @@ Route::get('/stores', [StoreController::class, 'index'])->name('stores.index');
 Route::get('/stores/{store:slug}', [StoreController::class, 'show'])->name('stores.show');
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/categories/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
-Route::get('/search', [SearchController::class, 'index'])->name('search'); // ADDED
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 // Auth routes (Breeze)
 require __DIR__ . '/auth.php';
@@ -29,7 +30,6 @@ require __DIR__ . '/auth.php';
 // Protected routes (butuh login)
 Route::middleware(['auth', 'verified'])->group(function () {
     // User Dashboard
-    // UBAH RUTE INI UNTUK MENUNJUK KE DASHBOARDCONTROLLER
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profile Management
@@ -37,7 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Cart Management (butuh login) - FIXED ROUTES
+    // Cart Management (butuh login)
     Route::prefix('cart')->name('cart.')->group(function () {
         Route::get('/', [CartController::class, 'index'])->name('index');
         Route::post('/add', [CartController::class, 'add'])->name('add');
@@ -64,10 +64,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Store Management (1 user bisa buat/kelola toko)
     Route::prefix('my-store')->name('store.')->group(function () {
         Route::get('/', [MyStoreController::class, 'index'])->name('index');
+
+        // KEMBALIKAN KE CONTROLLER
         Route::get('/create', [MyStoreController::class, 'create'])->name('create');
-        Route::post('/', [MyStoreController::class, 'store'])->name('store');
+        Route::post('/', [MyStoreController::class, 'store'])->name('store'); // Aktifkan kembali
         Route::get('/edit', [MyStoreController::class, 'edit'])->name('edit');
-        Route::patch('/update', [MyStoreController::class, 'update'])->name('update');
+        Route::patch('/update', [MyStoreController::class, 'update'])->name('update'); // Aktifkan kembali
+
 
         // Store Products Management
         Route::prefix('products')->name('products.')->group(function () {
@@ -79,14 +82,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{product}', [MyStoreController::class, 'destroyProduct'])->name('destroy');
         });
 
-        // Store Orders Management
-        Route::prefix('orders')->name('orders.')->group(function () {
-            Route::get('/', [MyStoreController::class, 'orders'])->name('index');
-            Route::get('/{order}', [MyStoreController::class, 'showOrder'])->name('show');
-            Route::patch('/{order}/status', [MyStoreController::class, 'updateOrderStatus'])->name('status');
+        // Store Transactions Management (changed from 'orders' to 'transactions')
+        Route::prefix('transactions')->name('transactions.')->group(function () {
+            Route::get('/', [MyStoreController::class, 'transactions'])->name('index');
+            Route::get('/{transaction}', [MyStoreController::class, 'showTransaction'])->name('show');
+            Route::patch('/{transaction}/status', [MyStoreController::class, 'updateTransactionStatus'])->name('updateStatus');
         });
 
         // Store Analytics
         Route::get('/analytics', [MyStoreController::class, 'analytics'])->name('analytics');
+
+        // Store Promotions (Added this route)
+        Route::get('/promotions', [MyStoreController::class, 'promotions'])->name('promotions');
     });
 });
