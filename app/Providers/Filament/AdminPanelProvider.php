@@ -2,6 +2,13 @@
 
 namespace App\Providers\Filament;
 
+// Import Resources yang Anda miliki
+use App\Filament\Resources\CategoryResource;
+use App\Filament\Resources\ProductResource;
+use App\Filament\Resources\StoreResource;
+use App\Filament\Resources\TransactionResource;
+use App\Filament\Resources\UserResource;
+
 use App\Filament\Widgets\StatsOverviewWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -32,7 +39,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Amber,
             ])
             ->brandName('MintMarket')
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            // >>>>>> PASTIKAN BARIS INI DIKOMENTARI <<<<<<
+            // ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
@@ -55,6 +63,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->resources([
+                // Hanya daftarkan Resources yang ADA di proyek Anda
+                CategoryResource::class,
+                ProductResource::class,
+                StoreResource::class,
+                TransactionResource::class,
+                UserResource::class,
+                // Hapus referensi WalletResource, WalletTransactionResource, WithdrawalResource
             ]);
     }
 }

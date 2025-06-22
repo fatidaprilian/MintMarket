@@ -11,6 +11,10 @@ class WalletTransaction extends Model
 {
     use HasFactory;
 
+    // (Optional) Enum type, jika pakai PHP 8.1+
+    // public const TYPE_CREDIT = 'credit';
+    // public const TYPE_DEBIT = 'debit';
+
     protected $fillable = [
         'wallet_id',
         'reference_type',
@@ -26,19 +30,47 @@ class WalletTransaction extends Model
         'running_balance' => 'decimal:2',
     ];
 
-    /**
-     * Get the parent wallet that this transaction belongs to.
-     */
     public function wallet(): BelongsTo
     {
         return $this->belongsTo(Wallet::class);
     }
 
-    /**
-     * Get the parent reference model (Transaction, Withdrawal, etc.).
-     */
     public function reference(): MorphTo
     {
         return $this->morphTo();
+    }
+
+    protected static function booted()
+    {
+        static::creating(function (self $transaction) {
+            // Ambil transaksi terakhir untuk wallet terkait
+            $last = self::where('wallet_id', $transaction->wallet_id)
+                ->orderByDesc('id')
+                ->first();
+
+            $lastBalance = $last?->running_balance ?? 0;
+
+            // Penyesuaian saldo (credit = tambah, debit = kurang)
+            $isCredit = in_array($transaction->type, [
+                'credit',
+                'bank_transfer',
+                'qris',
+                'e_wallet',
+                'virtual_account',
+            ]);
+
+            $newBalance = $isCredit
+                ? $lastBalance + $transaction->amount
+                : $lastBalance - $transaction->amount;
+
+            $transaction->running_balance = $newBalance;
+
+            // Sync ke Wallet (pastikan selalu sama)
+            $wallet = $transaction->wallet;
+            if ($wallet) {
+                $wallet->balance = $newBalance;
+                $wallet->save();
+            }
+        });
     }
 }

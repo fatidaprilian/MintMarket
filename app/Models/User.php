@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage; // <-- Tambahkan ini
+use Illuminate\Support\Facades\Storage;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -29,7 +29,7 @@ class User extends Authenticatable implements FilamentUser
         'address',
         'phone',
         'city',
-        'province', // <-- Pastikan kolom ini ada di migrasi Anda
+        'province',
         'postal_code',
         'profile_picture',
     ];
@@ -45,20 +45,17 @@ class User extends Authenticatable implements FilamentUser
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     // =========================================================================
-    // ACCESSORS (BARU)
+    // ACCESSORS
     // =========================================================================
 
     /**
@@ -80,12 +77,9 @@ class User extends Authenticatable implements FilamentUser
      */
     public function getFullAddressAttribute(): string
     {
-        // Menggabungkan semua bagian alamat yang ada
         $parts = [$this->address, $this->city, $this->province, $this->postal_code];
-        // array_filter akan menghapus bagian yang null atau kosong sebelum digabung
         return implode(', ', array_filter($parts));
     }
-
 
     // =========================================================================
     // RELATIONS
@@ -136,6 +130,14 @@ class User extends Authenticatable implements FilamentUser
     public function carts(): HasMany
     {
         return $this->hasMany(Cart::class);
+    }
+
+    /**
+     * Relasi ke semua wallet yang dimiliki user ini (pribadi dan/atau wallet toko).
+     */
+    public function wallets(): HasMany
+    {
+        return $this->hasMany(Wallet::class, 'user_id');
     }
 
     // =========================================================================

@@ -13,6 +13,7 @@ class Wallet extends Model
 
     protected $fillable = [
         'store_id',
+        'user_id',
         'balance',
     ];
 
@@ -20,19 +21,40 @@ class Wallet extends Model
         'balance' => 'decimal:2',
     ];
 
-    /**
-     * Get the store that owns the wallet.
-     */
     public function store(): BelongsTo
     {
         return $this->belongsTo(Store::class);
     }
 
-    /**
-     * Get all transactions for the wallet.
-     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function transactions(): HasMany
     {
         return $this->hasMany(WalletTransaction::class);
+    }
+
+    // Optional: Helper tipe wallet
+    public function isForStore(): bool
+    {
+        return (bool) $this->store_id;
+    }
+
+    public function isForUser(): bool
+    {
+        return (bool) $this->user_id;
+    }
+
+    // Optional: Scope wallet toko/user
+    public function scopeForStore($query)
+    {
+        return $query->whereNotNull('store_id');
+    }
+
+    public function scopeForUser($query)
+    {
+        return $query->whereNotNull('user_id');
     }
 }
