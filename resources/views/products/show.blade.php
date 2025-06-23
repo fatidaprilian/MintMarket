@@ -269,10 +269,25 @@
                                         </div>
                                     </div>
                                 </div>
-                                <a href="{{ route('stores.show', $product->store) }}" 
-                                   class="bg-white border border-sage-600 text-sage-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-sage-50 transition-colors">
-                                    Lihat Toko
-                                </a>
+                                <div class="flex flex-col items-end gap-2">
+                                    <a href="{{ route('stores.show', $product->store) }}" 
+                                       class="bg-white border border-sage-600 text-sage-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-sage-50 transition-colors">
+                                        Lihat Toko
+                                    </a>
+                                    @auth
+                                        <form method="POST" action="{{ route('chat.getOrCreateChat') }}">
+                                            @csrf
+                                            <input type="hidden" name="store_id" value="{{ $product->store->id }}">
+                                            <input type="hidden" name="message" value="Halo, saya tertarik dengan produk '{{ $product->name }}' yang Anda jual. Apakah barang ini masih tersedia?">
+                                            <button type="submit" class="bg-sage-600 hover:bg-sage-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 w-full shadow-sm transition">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.84l-4 1 .86-3.08A7.953 7.953 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                                </svg>
+                                                Chat Penjual
+                                            </button>
+                                        </form>
+                                    @endauth
+                                </div>
                             </div>
                         </div>
 

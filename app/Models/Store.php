@@ -128,6 +128,14 @@ class Store extends Model
     }
 
     /**
+     * Get all chat rooms (chats) for this store.
+     */
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class);
+    }
+
+    /**
      * Get all reviews for the store through products.
      */
     public function reviews()

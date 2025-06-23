@@ -37,6 +37,15 @@
 
                 <div class="flex items-center space-x-4">
                     @auth
+                        <!-- Tombol Chat -->
+                        <a href="{{ route('chat.userChats') }}" class="relative p-2 text-gray-600 hover:text-sage-600 transition-colors" title="Chat">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.84l-4 1 .86-3.08A7.953 7.953 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            {{-- Badge Unread Chat (Opsional, jika ada fitur unread) --}}
+                            {{-- <span class="absolute -top-1 -right-1 bg-primary-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">2</span> --}}
+                        </a>
+
                         <a href="{{ route('cart.index') }}" class="relative p-2 text-gray-600 hover:text-sage-600 transition-colors">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 7H19.5M7 13l-1.5 7m0 0h12"></path>

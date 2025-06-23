@@ -15,6 +15,12 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WalletController; // Untuk wallet user
 use App\Http\Controllers\MyStore\WalletController as StoreWalletController; // Untuk wallet toko
 use App\Http\Controllers\MyStore\TransactionController;
+use App\Http\Controllers\MyStore\AnalyticsController;
+use App\Http\Controllers\MyStore\NotificationController;
+use App\Http\Controllers\MyStore\SettingController;
+use App\Http\Controllers\MyStore\CustomerServiceController;
+use App\Http\Controllers\MyStore\ShippingController;
+use App\Http\Controllers\ChatController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -111,4 +117,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/topup', [WalletController::class, 'topupSubmit'])->name('topup.submit');
         Route::post('/withdraw', [WalletController::class, 'withdraw'])->name('withdraw'); // Untuk fitur berikutnya
     });
+
+    // ==================== CHAT ROUTES ====================
+
+    // Mendapatkan atau membuat chat room antara user dan toko
+    Route::post('/chat/get-or-create', [ChatController::class, 'getOrCreateChat'])->name('chat.getOrCreateChat');
+
+    // Mengirim pesan pada chat tertentu
+    Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+
+    // Mengambil pesan dalam satu chat room
+    Route::get('/chat/{chat_id}/messages', [ChatController::class, 'messages'])->name('chat.messages');
+
+    // Mengambil semua chat room yang diikuti user (baik sebagai pembeli atau pemilik toko)
+    Route::get('/chats', [ChatController::class, 'userChats'])->name('chat.userChats');
 });
