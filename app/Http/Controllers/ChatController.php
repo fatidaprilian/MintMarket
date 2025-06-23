@@ -24,8 +24,13 @@ class ChatController extends Controller
         );
 
         if ($messageText) {
+            // Periksa apakah pesan awal sudah ada untuk chat ini dari pengguna ini
             $existingMsg = Message::where('chat_id', $chat->id)
-                ->where('user_id', $userId)->first();
+                ->where('user_id', $userId)
+                ->where('message', $messageText) // Tambahkan kondisi pesan untuk menghindari duplikasi pesan inisial yang sama
+                ->first();
+
+            // Jika belum ada pesan ini, buat pesan baru
             if (!$existingMsg) {
                 Message::create([
                     'chat_id' => $chat->id,
@@ -36,7 +41,8 @@ class ChatController extends Controller
         }
 
         if (!$request->wantsJson()) {
-            return redirect()->route('chat.userChats', ['chat' => $chat->id]);
+            // Perubahan di sini: Redirect selalu ke daftar chat utama tanpa ID chat
+            return redirect()->route('chat.userChats');
         }
 
         return response()->json([
@@ -71,16 +77,12 @@ class ChatController extends Controller
             'message_id' => $message->id,
         ]);
 
-        if (!$request->wantsJson()) {
-            $chat = Chat::with(['user', 'store', 'messages.user'])->findOrFail($chat->id);
-            $messages = $chat->messages()->with('user')->orderBy('created_at')->get();
-            return view('chat.partials.messages', compact('chat', 'messages'))->render();
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => $message,
-        ]);
+        // Karena kita menggunakan AJAX untuk mengirim pesan dan kemudian me-render ulang partial,
+        // kita ingin controller ini selalu mengembalikan partial yang diperbarui.
+        // Ini memastikan tampilan obrolan segera diperbarui dengan pesan baru.
+        $chat = Chat::with(['user', 'store', 'messages.user'])->findOrFail($chat->id);
+        $messages = $chat->messages()->with('user')->orderBy('created_at')->get();
+        return view('chat.partials.messages', compact('chat', 'messages'))->render();
     }
 
     public function messages(Request $request, $chat_id)
@@ -101,7 +103,7 @@ class ChatController extends Controller
             'message_count' => $messages->count(),
         ]);
 
-        // Perubahan di sini: Hapus pengalihan
+        // Selalu kembalikan partial view
         return view('chat.partials.messages', compact('chat', 'messages'))->render();
     }
 
@@ -130,7 +132,7 @@ class ChatController extends Controller
         if (!$request->wantsJson()) {
             return view('chat.index', [
                 'chats' => $chats,
-                'activeChatId' => $request->chat,
+                'activeChatId' => $request->chat, // Tetap gunakan ini untuk inisialisasi jika datang dari klik chat di sidebar
             ]);
         }
 
