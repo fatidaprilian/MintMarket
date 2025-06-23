@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 // 1. Tambahkan dua use statement ini di bagian atas
 use App\Http\Responses\LogoutResponse;
 use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (config('app.env') !== 'local') {
+            URL::forceScheme('https');
+        }
     }
 }

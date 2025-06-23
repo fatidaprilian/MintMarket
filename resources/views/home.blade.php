@@ -3,7 +3,6 @@
 @section('title', 'Beranda')
 
 @section('content')
-<!-- Hero Section -->
 <section class="bg-gradient-to-r from-primary-600 to-primary-700 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -23,17 +22,17 @@
                 </div>
             </div>
             <div class="hidden lg:block">
-                <div class="w-full h-80 bg-white/20 rounded-2xl flex items-center justify-center">
-                    <svg class="w-24 h-24 text-white/50" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
-                    </svg>
+                <div class="w-full h-80 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
+                    {{-- Replaced the SVG placeholder with a suitable online image --}}
+                    <img src="https://image.freepik.com/free-vector/online-shopping-banner-with-realistic-smartphone_107791-2309.jpg" 
+                         alt="Online Shopping Hero Image" 
+                         class="w-full h-full object-cover">
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Categories Section -->
 <section class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
@@ -78,7 +77,6 @@
     </div>
 </section>
 
-<!-- Flash Sale Section -->
 @if($flashSaleProducts && $flashSaleProducts->count() > 0)
 <section class="py-16 bg-gradient-to-r from-orange-50 to-red-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -156,7 +154,6 @@
                                     <span class="truncate block">{{ $product->store->name }}</span>
                                 </div>
                                 
-                                <!-- Progress bar untuk efek "stok terbatas" -->
                                 <div class="mt-2 h-2 bg-orange-100 rounded-full relative overflow-hidden">
                                     <div class="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full animate-pulse" style="width: {{ rand(30, 80) }}%;"></div>
                                 </div>
@@ -171,7 +168,6 @@
 </section>
 @endif
 
-<!-- Rekomendasi Untukmu -->
 <section class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
