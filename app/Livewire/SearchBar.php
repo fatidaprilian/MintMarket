@@ -33,6 +33,7 @@ class SearchBar extends Component
                 'name' => $product->name,
                 'price' => $product->price,
                 'id' => $product->id,
+                'slug' => $product->slug, // Tambahkan slug untuk keperluan lain
             ];
         })->toArray();
     }
@@ -40,11 +41,7 @@ class SearchBar extends Component
     public function clearSearch()
     {
         $this->reset(['query', 'results', 'showResults']);
-
-        // Force re-render komponen
         $this->dispatch('$refresh');
-
-        // Focus kembali ke input
         $this->dispatch('focusSearch');
     }
 
@@ -55,8 +52,10 @@ class SearchBar extends Component
 
     public function selectProduct($productId)
     {
-        $this->hideResults();
-        // Add your product selection logic here
+        $product = Product::findOrFail($productId);
+        $this->showResults = false;
+        // Redirect ke halaman detail produk by slug
+        return redirect()->route('products.show', $product->slug);
     }
 
     public function render()
