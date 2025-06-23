@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany; // Pastikan ini diimpor
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 
@@ -57,11 +57,16 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function transactions(): HasMany
+    // GANTI (atau tambahkan jika Anda butuh relasi 'transactions' untuk hal lain)
+    // public function transactions(): HasMany
+    // {
+    //     return $this->hasMany(Transaction::class);
+    // }
+
+    // TAMBAHKAN RELASI transactionItems() INI
+    public function transactionItems(): HasMany
     {
-        // Relasi ini mungkin lebih tepat berada di TransactionItem jika produk bisa ada di banyak transaksi
-        // melalui transaction_items. Jika ini adalah relasi langsung transaksi ke produk (bukan itemnya), ini OK.
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(TransactionItem::class);
     }
 
     /**

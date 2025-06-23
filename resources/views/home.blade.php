@@ -67,7 +67,7 @@
         @endif
         
         <div class="text-center mt-8">
-            <a href="{{ route('products.index') }}" 
+            <a href="{{ route('categories.index') }}" 
                class="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium">
                 Lihat Semua Kategori 
                 <svg class="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -33,7 +33,6 @@
 
 @section('content')
 <div class="min-h-screen bg-gray-50">
-    <!-- Header Section -->
     <div class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -74,7 +73,6 @@
                         </svg>
                         Lihat Toko
                     </a>
-                    <!-- Tombol Chat Masuk -->
                     <a href="{{ route('chat.userChats') }}"
                        class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-primary-700 hover:bg-primary-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +86,6 @@
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="dashboard-card bg-green-500 text-white rounded-xl p-6">
                 <div class="flex items-center justify-between">
@@ -165,7 +162,6 @@
         </div>
         @endif
 
-        <!-- Quick Actions -->
         <div class="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Aksi Cepat</h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
@@ -200,7 +196,6 @@
             </div>
         </div>
 
-        <!-- Recent Activities & Products -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
                 <div class="flex items-center justify-between mb-4">
