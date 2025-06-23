@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // Pastikan ini di-import
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 
 class ProfileController extends Controller
 {
@@ -46,19 +47,37 @@ class ProfileController extends Controller
 
         if ($request->hasFile('profile_picture')) {
             try {
-                // Hapus gambar lama jika ada
-                if ($user->profile_picture) {
+                // Hapus gambar lama jika ada (lokal)
+                if ($user->profile_picture && env('FILE_STORAGE_DISK', 'public') === 'public') {
                     Log::info('ProfileController@update: Deleting old profile picture: ' . $user->profile_picture);
                     Storage::disk('public')->delete($user->profile_picture);
                 }
 
-                // Simpan gambar baru
-                $path = $request->file('profile_picture')->store('profile_pictures', 'public');
-                $user->profile_picture = $path; // Tetapkan path gambar baru ke model
-                Log::info('ProfileController@update: New profile picture stored at: ' . $path);
+                $disk = env('FILE_STORAGE_DISK', 'public');
+                if ($disk === 'public') {
+                    // Upload ke storage lokal
+                    $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+                    $user->profile_picture = $path;
+                    Log::info('ProfileController@update: New profile picture stored at: ' . $path);
+                } else if ($disk === 'vercel_blob') {
+                    // Upload ke Vercel Blob
+                    $file = $request->file('profile_picture');
+                    $filename = 'profile_pictures/' . time() . '_' . $file->getClientOriginalName();
+                    $blobUrl = env('VERCEL_BLOB_URL') . '/' . $filename;
+
+                    $response = Http::withToken(env('BLOB_READ_WRITE_TOKEN'))
+                        ->put($blobUrl, fopen($file->getRealPath(), 'r'));
+
+                    if ($response->successful()) {
+                        $user->profile_picture = $filename; // Simpan filename (bukan URL penuh)
+                        Log::info('ProfileController@update: New profile picture uploaded to Vercel Blob: ' . $blobUrl);
+                    } else {
+                        Log::error('ProfileController@update: Error during blob upload: ' . $response->body());
+                        return back()->withErrors(['profile_picture' => 'Upload ke Blob gagal.']);
+                    }
+                }
             } catch (\Exception $e) {
                 Log::error('ProfileController@update: Error during file storage: ' . $e->getMessage());
-                // Mungkin juga ada detail lain seperti code, file, line:
                 Log::error('ProfileController@update: Stack trace: ' . $e->getTraceAsString());
             }
         }
@@ -91,7 +110,8 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        if ($user->profile_picture) {
+        // Hapus file profile_picture jika ada (hanya di lokal)
+        if ($user->profile_picture && env('FILE_STORAGE_DISK', 'public') === 'public') {
             Storage::disk('public')->delete($user->profile_picture);
         }
 

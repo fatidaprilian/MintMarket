@@ -62,8 +62,16 @@
                         <div class="mb-6 flex justify-center">
                             <div class="relative inline-block">
                                 <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg ring-4 ring-sage-200 overflow-hidden" id="profile-picture-preview-container">
-                                    @if(Auth::user()->profile_picture)
-                                        <img src="{{ asset('storage/' . Auth::user()->profile_picture) }}" alt="Profile Picture" class="w-full h-full object-cover">
+                                    @php
+                                        $disk = env('FILE_STORAGE_DISK', 'public');
+                                        $profilePicture = Auth::user()->profile_picture;
+                                    @endphp
+                                    @if($profilePicture)
+                                        @if($disk === 'vercel_blob')
+                                            <img src="{{ env('VERCEL_BLOB_URL') . '/' . $profilePicture }}" alt="Profile Picture" class="w-full h-full object-cover">
+                                        @else
+                                            <img src="{{ asset('storage/' . $profilePicture) }}" alt="Profile Picture" class="w-full h-full object-cover">
+                                        @endif
                                     @else
                                         <div class="w-full h-full bg-gradient-to-br from-sage-600 to-sage-700 flex items-center justify-center">
                                             <span class="text-3xl font-bold text-white">{{ substr(Auth::user()->name, 0, 1) }}</span>
@@ -400,8 +408,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Jika tidak ada file dipilih, kembalikan ke inisial avatar
                 // Atau tampilkan gambar profil lama jika ada
                 @php
+                    $disk = env('FILE_STORAGE_DISK', 'public');
+                    $profilePicture = Auth::user()->profile_picture;
                     $defaultAvatarHtml = '<div class="w-full h-full bg-gradient-to-br from-sage-600 to-sage-700 flex items-center justify-center"><span class="text-3xl font-bold text-white">' . substr($user->name, 0, 1) . '</span></div>';
-                    $userProfilePictureUrl = $user->profile_picture ? asset('storage/' . $user->profile_picture) : null;
+                    $userProfilePictureUrl = null;
+                    if ($profilePicture) {
+                        if ($disk === 'vercel_blob') {
+                            $userProfilePictureUrl = env('VERCEL_BLOB_URL') . '/' . $profilePicture;
+                        } else {
+                            $userProfilePictureUrl = asset('storage/' . $profilePicture);
+                        }
+                    }
                 @endphp
 
                 if ("{{ $userProfilePictureUrl }}") {
