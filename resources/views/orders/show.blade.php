@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Detail Pesanan #' . $order->transaction_code)
+@section('hide_search_bar', true)
 
 @section('content')
 <div class="py-6 sm:py-8 lg:py-12">

@@ -84,12 +84,20 @@
                                     
                                     <div>
                                         <label for="city" class="block text-sm font-medium text-gray-700">Kota/Kabupaten <span class="text-red-500">*</span></label>
-                                        <input type="text" name="city" id="city" value="{{ old('city', $user->city) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" required placeholder="Contoh: Jakarta Selatan">
+                                        <select name="city" id="city" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" required>
+                                            <option value="">Pilih Kota/Kabupaten...</option>
+                                            @if(isset($cities) && !empty($cities))
+                                                @foreach($cities as $cityData)
+                                                    <option value="{{ $cityData['nama'] }}" {{ old('city', $user->city) == $cityData['nama'] ? 'selected' : '' }}>
+                                                        {{ $cityData['nama'] }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
                                         @error('city')
                                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    
                                     <div>
                                         <label for="postal_code" class="block text-sm font-medium text-gray-700">Kode Pos <span class="text-red-500">*</span></label>
                                         <input type="text" name="postal_code" id="postal_code" value="{{ old('postal_code', $user->postal_code) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-sage-500 focus:ring-sage-500" required placeholder="Contoh: 12345">
@@ -285,13 +293,22 @@
 <script>
 function useDefaultAddress() {
     document.getElementById('shipping_address').value = @json($user->address ?? '');
-    document.getElementById('city').value = @json($user->city ?? '');
+    // PERUBAHAN DISINI: Mengatur nilai Select2
+    $('#city').val(@json($user->city ?? '')).trigger('change');
     document.getElementById('postal_code').value = @json($user->postal_code ?? '');
     document.getElementById('phone').value = @json($user->phone ?? '');
 }
 
 // Script untuk form checkout dan validasi saldo dompet
 document.addEventListener('DOMContentLoaded', function() {
+    // PERUBAHAN DISINI: Inisialisasi Select2
+    $('#city').select2({
+        placeholder: 'Pilih atau ketik untuk mencari...',
+        // Baris di bawah ini memastikan Select2 bisa di-render dengan benar di atas elemen lain jika diperlukan
+        dropdownAutoWidth: true,
+        width: '100%'
+    });
+
     const form = document.getElementById('checkoutForm');
     const orderButton = document.getElementById('orderButton');
     const paymentMethodSelect = document.getElementById('payment_method');
@@ -339,8 +356,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!field.value.trim()) {
                     isValid = false;
                     field.classList.add('border-red-500');
+                    // Tambahkan border merah juga untuk Select2
+                    if (field.id === 'city') {
+                        $(field).next('.select2-container').find('.select2-selection').css('border-color', '#ef4444');
+                    }
                 } else {
                     field.classList.remove('border-red-500');
+                    if (field.id === 'city') {
+                        $(field).next('.select2-container').find('.select2-selection').css('border-color', '#D1D5DB'); // warna border default
+                    }
                 }
             });
             

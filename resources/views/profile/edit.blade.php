@@ -6,6 +6,7 @@
 @section('content')
 <div class="min-h-screen bg-sage-50 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+
         {{-- Header Section (Tanpa input file dan tanpa foto profil) --}}
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-sage-900">{{ Auth::user()->name }}</h1>
@@ -210,7 +211,7 @@
 
                         {{-- NEW: City and Postal Code --}}
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            {{-- City --}}
+                            
                             <div class="space-y-2">
                                 <label for="city" class="block text-sm font-medium text-sage-800">
                                     <svg class="w-4 h-4 inline mr-1 text-sage-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,10 +220,16 @@
                                     </svg>
                                     Kota/Kabupaten
                                 </label>
-                                <input id="city" name="city" type="text" 
-                                        class="w-full px-4 py-3 border border-sage-300 rounded-lg focus:ring-2 focus:ring-sage-500 focus:border-sage-500 transition-all duration-200 bg-white hover:border-sage-400" 
-                                        value="{{ old('city', $user->city) }}" 
-                                        placeholder="Contoh: Bogor">
+                                <select id="city" name="city" class="w-full">
+                                    <option value="">Pilih atau ketik untuk mencari...</option>
+                                    @if(isset($cities) && !empty($cities))
+                                        @foreach ($cities as $cityData)
+                                            <option value="{{ $cityData['nama'] }}" {{ old('city', $user->city) == $cityData['nama'] ? 'selected' : '' }}>
+                                                {{ $cityData['nama'] }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
                                 @error('city')
                                     <p class="text-red-500 text-xs mt-1 flex items-center">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +239,6 @@
                                     </p>
                                 @enderror
                             </div>
-
                             {{-- Postal Code --}}
                             <div class="space-y-2">
                                 <label for="postal_code" class="block text-sm font-medium text-sage-800">
@@ -267,7 +273,6 @@
                             </p>
                         </div>
 
-                        {{-- Submit Button --}}
                         <div class="flex items-center justify-between mt-8 pt-6 border-t border-sage-200">
                             @if (session('status') === 'profile-updated')
                                 <div class="flex items-center text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200" 
@@ -286,18 +291,24 @@
                                     <span class="text-sm font-medium">Profil berhasil diperbarui!</span>
                                 </div>
                             @else
-                                <div></div>
-                            @endif
+                                <div></div> @endif
                             
-                            <button type="submit" 
-                                    class="bg-gradient-to-r from-sage-600 to-sage-700 text-white px-6 py-3 rounded-lg font-medium hover:from-sage-700 hover:to-sage-800 focus:ring-4 focus:ring-sage-300 transition-all duration-200 flex items-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                Simpan Perubahan
-                            </button>
+                            <div class="flex items-center gap-4">
+                                <a href="#" onclick="event.preventDefault(); window.history.back();"
+                                   class="bg-white text-gray-800 px-6 py-3 rounded-lg font-medium border border-gray-300 hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 transition-all duration-200 shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
+                                    Kembali
+                                </a>
+
+                                <button type="submit" 
+                                        class="bg-gradient-to-r from-sage-600 to-sage-700 text-white px-6 py-3 rounded-lg font-medium hover:from-sage-700 hover:to-sage-800 focus:ring-4 focus:ring-sage-300 transition-all duration-200 flex items-center shadow-sm hover:shadow-md transform hover:-translate-y-0.5">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Simpan Perubahan
+                                </button>
+                            </div>
                         </div>
-                    </form>
+                        </form>
                 </div>
             </div>
 
@@ -379,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add input focus effects
-    const inputs = document.querySelectorAll('input, textarea');
+    const inputs = document.querySelectorAll('input, textarea, select');
     inputs.forEach(input => {
         input.addEventListener('focus', () => {
             input.classList.add('transform', '-translate-y-0.5', 'shadow-lg');
@@ -389,6 +400,9 @@ document.addEventListener('DOMContentLoaded', function() {
             input.classList.remove('transform', '-translate-y-0.5', 'shadow-lg');
         });
     });
+
+    // Inisialisasi Select2
+    $('#city').select2();
 
     // JavaScript untuk live preview gambar profil (hanya satu preview)
     const profilePictureUpload = document.getElementById('profile_picture_upload');

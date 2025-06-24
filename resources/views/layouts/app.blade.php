@@ -14,6 +14,36 @@
     @livewireStyles
     
     @stack('styles') 
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .select2-container .select2-selection--single {
+            height: 50px !important;
+            border-radius: 0.5rem !important; /* rounded-lg */
+            border: 1px solid #a3b8a3 !important; /* Menyerupai border-sage-300 */
+            padding: 0.75rem 1rem !important; /* px-4 py-3 */
+            background-color: white;
+            display: flex;
+            align-items: center;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            line-height: normal !important;
+            color: #1f2937;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 48px !important;
+        }
+        .select2-container--open .select2-dropdown--below {
+            border: 1px solid #a3b8a3 !important;
+            border-radius: 0.5rem !important;
+        }
+        .select2-container--default .select2-search--dropdown .select2-search__field {
+            border: 1px solid #d1d5db !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #5d9b89; /* Warna sage-600 */
+        }
+    </style>
 </head>
 <body class="font-sans antialiased bg-gray-50">
     <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
@@ -37,7 +67,6 @@
 
                 <div class="flex items-center space-x-4">
                     @auth
-                        <!-- Tombol Chat -->
                         <a href="{{ route('chat.userChats') }}" class="relative p-2 text-gray-600 hover:text-sage-600 transition-colors" title="Chat">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.84l-4 1 .86-3.08A7.953 7.953 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -159,6 +188,8 @@
     </footer>
 
     @livewireScripts
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     @stack('scripts')
 </body>
 </html>

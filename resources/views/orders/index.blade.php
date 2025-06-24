@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Pesanan Saya')
+@section('hide_search_bar', true)
 
 @section('content')
 <div class="py-6 sm:py-8 lg:py-12">
@@ -13,15 +14,15 @@
                     <p class="text-gray-600 mt-2">Kelola dan lihat status semua pesanan Anda di sini.</p>
                 </div>
 
-                {{-- Tombol Kembali --}}
-                <div class="mb-6">
-                    <button type="button" onclick="window.history.back()" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
-                        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                        </svg>
-                        Kembali
-                    </button>
-                </div>
+{{-- Tombol Kembali ke Homepage --}}
+<div class="mb-6">
+    <a href="{{ route('home') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Kembali
+    </a>
+</div>
 
                 {{-- Menampilkan Notifikasi --}}
                 @if(session('success'))

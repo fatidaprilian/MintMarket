@@ -11,6 +11,7 @@ use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http; // <-- Perubahan: Ditambahkan
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 
@@ -96,6 +97,15 @@ class CheckoutController extends Controller
         $totalShippingCost = count($groupedItems) * $shippingCostPerStore;
         $grandTotal = $totalSubtotal + $totalShippingCost;
 
+        // --- PERUBAHAN DIMULAI DI SINI ---
+        // Mengambil daftar kota/kabupaten dari API
+        $citiesResponse = Http::withoutVerifying()->get('https://api.nusakita.yuefii.site/v2/kab-kota?pagination=false');
+        $cities = [];
+        if ($citiesResponse->successful() && isset($citiesResponse->json()['data'])) {
+            $cities = $citiesResponse->json()['data'];
+        }
+        // --- PERUBAHAN SELESAI ---
+
         return view('checkout.index', [
             'cartItems' => $cartItems,
             'groupedItems' => $groupedItems,
@@ -105,6 +115,7 @@ class CheckoutController extends Controller
             'total' => $grandTotal,
             'user' => $user,
             'isBuyNow' => $isBuyNow,
+            'cities' => $cities, // <-- Perubahan: Mengirim data kota ke view
         ]);
     }
 
@@ -274,10 +285,15 @@ class CheckoutController extends Controller
                 } while (Transaction::where('transaction_code', $transactionCode)->exists());
 
                 // Status awal
-                $initialStatus = $store->auto_process_orders ? 'processing' : 'pending';
+                // Status awal
+                $initialStatus = $store->auto_process_orders ? 'processing' : 'pending'; // Default status
+
                 if ($request->payment_method === 'saldo') {
                     $initialStatus = 'paid';
+                } elseif (in_array($request->payment_method, ['cod', 'bank_transfer', 'e_wallet', 'virtual_account'])) {
+                    $initialStatus = 'pending';
                 }
+                // If it's none of the above, it will retain the default status set initially.
 
                 $transaction = Transaction::create([
                     'user_id' => $user->id,

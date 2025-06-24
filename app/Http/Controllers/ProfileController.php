@@ -18,8 +18,18 @@ class ProfileController extends Controller
      */
     public function edit(Request $request)
     {
+        // Panggil API untuk mendapatkan daftar kota
+        $citiesResponse = Http::withoutVerifying()->get('https://api.nusakita.yuefii.site/v2/kab-kota?pagination=false');
+
+        $cities = [];
+        // Cek jika request berhasil dan memiliki data
+        if ($citiesResponse->successful() && isset($citiesResponse->json()['data'])) {
+            $cities = $citiesResponse->json()['data'];
+        }
+
         return view('profile.edit', [
             'user' => $request->user(),
+            'cities' => $cities, // Kirim data kota ke view
         ]);
     }
 
